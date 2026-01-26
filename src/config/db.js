@@ -21,8 +21,8 @@ const connectDB = async () => {
 
     await client.connect();
     
-    // Get database name from URI or default to 'swapner_thikana'
-    const dbName = uri.split('/').pop().split('?')[0] || 'swapner_thikana';
+    // Get database name from URI or default to 'shwapner_thikana'
+    const dbName = uri.split('/').pop().split('?')[0] || 'shwapner_thikana';
     db = client.db(dbName);
 
     // Initialize indexes

@@ -1,4 +1,4 @@
-# Swapner Thikana LTD - Backend
+# shwapner Thikana LTD - Backend
 
 🏗️ **Premium Real Estate Development Platform** - Backend API
 
@@ -80,7 +80,7 @@ CLOUDINARY_CLOUD_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 EMAIL_API_KEY=your_email_api_key
-EMAIL_FROM=noreply@swapnerthikana.com
+EMAIL_FROM=noreply@shwapnerthikana.com
 FRONTEND_URL=your_frontend_url
 ```
 
@@ -169,7 +169,7 @@ vercel --prod
 
 Successfully connected to MongoDB Atlas:
 - **Cluster**: Taftech
-- **Database**: swapner-thikana
+- **Database**: shwapner-thikana
 - **Status**: ✅ Tested and working
 
 ## 🎯 Development Roadmap
@@ -189,7 +189,7 @@ Successfully connected to MongoDB Atlas:
 
 ## 👥 Company
 
-**Swapner Thikana Ltd** (স্বপ্নের ঠিকানা)  
+**shwapner Thikana Ltd** (স্বপ্নের ঠিকানা)  
 *Building Dreams, Creating Addresses*
 
 Premium Real Estate Development Company  
@@ -198,8 +198,8 @@ Location: Dhaka, Bangladesh
 
 ## 📄 License
 
-Private - © 2026 Swapner Thikana Ltd
+Private - © 2026 shwapner Thikana Ltd
 
 ---
 
-**Frontend Repository**: [Swapner-Thikana-LTD-FrontEnd](https://github.com/Tafsirchy/Swapner-Thikana-LTD-FrontEnd)
+**Frontend Repository**: [shwapner-Thikana-LTD-FrontEnd](https://github.com/Tafsirchy/shwapner-Thikana-LTD-FrontEnd)

@@ -54,7 +54,7 @@ const agents = [
 const seedAgents = async () => {
   let client;
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/swapner-thikana';
+    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/shwapner-thikana';
     console.log('Connecting to MongoDB...');
     
     client = new MongoClient(mongoUri);

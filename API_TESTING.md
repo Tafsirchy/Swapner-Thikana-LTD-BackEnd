@@ -34,7 +34,7 @@ curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Tafsir Rahman",
-    "email": "tafsir@swapnerthikana.com",
+    "email": "tafsir@shwapnerthikana.com",
     "password": "SecurePass123!",
     "phone": "+8801712345678",
     "role": "customer"
@@ -50,7 +50,7 @@ curl -X POST http://localhost:5000/api/auth/register \
     "user": {
       "id": "...",
       "name": "Tafsir Rahman",
-      "email": "tafsir@swapnerthikana.com",
+      "email": "tafsir@shwapnerthikana.com",
       "phone": "+8801712345678",
       "role": "customer"
     },
@@ -69,7 +69,7 @@ curl -X POST http://localhost:5000/api/auth/register \
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "tafsir@swapnerthikana.com",
+    "email": "tafsir@shwapnerthikana.com",
     "password": "SecurePass123!"
   }'
 ```
@@ -83,7 +83,7 @@ curl -X POST http://localhost:5000/api/auth/login \
     "user": {
       "id": "...",
       "name": "Tafsir Rahman",
-      "email": "tafsir@swapnerthikana.com",
+      "email": "tafsir@shwapnerthikana.com",
       "phone": "+8801712345678",
       "role": "customer",
       "avatar": null,
@@ -116,7 +116,7 @@ curl -X GET http://localhost:5000/api/auth/me \
     "user": {
       "id": "...",
       "name": "Tafsir Rahman",
-      "email": "tafsir@swapnerthikana.com",
+      "email": "tafsir@shwapnerthikana.com",
       "phone": "+8801712345678",
       "role": "customer",
       "savedProperties": [],
@@ -169,7 +169,7 @@ curl -X PUT http://localhost:5000/api/auth/profile \
 curl -X POST http://localhost:5000/api/auth/forgot-password \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "tafsir@swapnerthikana.com"
+    "email": "tafsir@shwapnerthikana.com"
   }'
 ```
 
@@ -211,7 +211,7 @@ curl -X POST http://localhost:5000/api/auth/reset-password \
     "user": {
       "id": "...",
       "name": "Tafsir Rahman",
-      "email": "tafsir@swapnerthikana.com"
+      "email": "tafsir@shwapnerthikana.com"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -340,7 +340,7 @@ curl -X PUT http://localhost:5000/api/auth/profile \
 
 ### Setup:
 
-1. **Create Collection**: "Swapner Thikana API"
+1. **Create Collection**: "shwapner Thikana API"
 2. **Add Environment**: 
    - Variable: `baseUrl` = `http://localhost:5000/api`
    - Variable: `token` = (will be set automatically)
@@ -389,7 +389,7 @@ Token: `{{token}}`
 Check if users are created in MongoDB Atlas:
 
 1. Go to MongoDB Atlas dashboard
-2. Browse Collections → `swapner-thikana` → `users`
+2. Browse Collections → `shwapner-thikana` → `users`
 3. See registered users
 
 ---
@@ -424,4 +424,4 @@ Check if users are created in MongoDB Atlas:
 
 **Created**: January 26, 2026  
 **Backend Running**: http://localhost:5000  
-**Database**: MongoDB Atlas (swapner-thikana)
+**Database**: MongoDB Atlas (shwapner-thikana)
