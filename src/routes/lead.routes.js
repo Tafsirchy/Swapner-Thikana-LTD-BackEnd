@@ -1,26 +1,28 @@
 const express = require('express');
 const router = express.Router();
 
-// Public - Submit inquiry
-router.post('/', (req, res) => {
-  res.status(501).json({ message: 'Submit inquiry - To be implemented in Phase 3' });
-});
+const leadController = require('../controllers/lead.controller');
+const { protect } = require('../middlewares/auth.middleware');
+const { authorize } = require('../middlewares/role.middleware');
 
-// Protected - Get leads
-router.get('/', (req, res) => {
-  res.status(501).json({ message: 'Get all leads - To be implemented in Phase 3' });
-});
+// @route   POST /api/leads
+// @desc    Submit a new inquiry
+// @access  Public
+router.post('/', leadController.createLead);
 
-router.get('/:id', (req, res) => {
-  res.status(501).json({ message: 'Get lead details - To be implemented in Phase 3' });
-});
+// @route   GET /api/leads/my-inquiries
+// @desc    Get my inquiries
+// @access  Private
+router.get('/my-inquiries', protect, leadController.getMyInquiries);
 
-router.put('/:id/status', (req, res) => {
-  res.status(501).json({ message: 'Update lead status - To be implemented in Phase 3' });
-});
+// @route   GET /api/leads
+// @desc    Get all leads
+// @access  Private
+router.get('/', protect, authorize('agent', 'admin'), leadController.getLeads);
 
-router.post('/:id/notes', (req, res) => {
-  res.status(501).json({ message: 'Add note to lead - To be implemented in Phase 3' });
-});
+// @route   PATCH /api/leads/:id/status
+// @desc    Update lead status
+// @access  Private
+router.patch('/:id/status', protect, authorize('agent', 'admin'), leadController.updateLeadStatus);
 
 module.exports = router;

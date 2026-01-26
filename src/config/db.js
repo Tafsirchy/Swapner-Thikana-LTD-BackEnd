@@ -1,37 +1,81 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
+
+let db = null;
+let client = null;
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // Options removed as they're now defaults in MongoDB driver 4+
-    });
+  if (db) return db;
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`📦 Database: ${conn.connection.name}`);
+  try {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
+
+    client = new MongoClient(uri);
+
+    // Connection events logging
+    client.on('open', () => console.log('📡 MongoDB connection opened'));
+    client.on('close', () => console.log('📡 MongoDB connection closed'));
+    client.on('error', (err) => console.error(`❌ MongoDB Driver Error: ${err.message}`));
+
+    await client.connect();
+    
+    // Get database name from URI or default to 'swapner_thikana'
+    const dbName = uri.split('/').pop().split('?')[0] || 'swapner_thikana';
+    db = client.db(dbName);
+
+    // Initialize indexes
+    const { createIndexes: createUserIndexes } = require('../models/User');
+    const { createIndexes: createPropertyIndexes } = require('../models/Property');
+    const { createIndexes: createProjectIndexes } = require('../models/Project');
+    const { createIndexes: createLeadIndexes } = require('../models/Lead');
+    const { createIndexes: createBlogIndexes } = require('../models/Blog');
+
+    await Promise.all([
+      createUserIndexes(db),
+      createPropertyIndexes(db),
+      createProjectIndexes(db),
+      createLeadIndexes(db),
+      createBlogIndexes(db),
+    ]);
+
+    console.log(`✅ MongoDB Connected and indexes initialized: ${dbName}`);
+    
+    return db;
   } catch (error) {
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
     process.exit(1);
   }
 };
 
-// Handle connection events
-mongoose.connection.on('connected', () => {
-  console.log('📡 Mongoose connected to MongoDB');
-});
+const getDB = () => {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectDB first.');
+  }
+  return db;
+};
 
-mongoose.connection.on('error', (err) => {
-  console.error(`❌ Mongoose connection error: ${err}`);
-});
+const getClient = () => client;
 
-mongoose.connection.on('disconnected', () => {
-  console.log('📡 Mongoose disconnected from MongoDB');
-});
+const closeDB = async () => {
+  if (client) {
+    await client.close();
+    console.log('👋 MongoDB connection closed');
+    db = null;
+    client = null;
+  }
+};
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('👋 MongoDB connection closed due to app termination');
+  await closeDB();
   process.exit(0);
 });
 
-module.exports = connectDB;
+module.exports = {
+  connectDB,
+  getDB,
+  getClient,
+  closeDB
+};

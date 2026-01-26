@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwt');
-const User = require('../models/User');
+const { getDB } = require('../config/db');
+const { ObjectId } = require('mongodb');
 const ApiResponse = require('../utils/apiResponse');
 
 /**
@@ -21,8 +22,14 @@ const protect = async (req, res, next) => {
     // Verify token
     const decoded = verifyToken(token);
 
+    // Get database instance
+    const db = getDB();
+
     // Get user from token
-    req.user = await User.findById(decoded.id).select('-password');
+    req.user = await db.collection('users').findOne(
+      { _id: new ObjectId(decoded.id) },
+      { projection: { password: 0 } }
+    );
 
     if (!req.user) {
       return ApiResponse.error(res, 'User not found', 404);

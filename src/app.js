@@ -14,17 +14,18 @@ app.use(cors({
   credentials: true,
 }));
 
+// Logging
+const morgan = require('morgan');
+app.use(morgan('dev'));
+
 // Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later',
-});
-app.use('/api/', limiter);
+const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
+app.use('/api/', apiLimiter);
+app.use('/api/auth', authLimiter); // Stricter limit for auth routes
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -41,6 +42,7 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/properties', require('./routes/property.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
 app.use('/api/leads', require('./routes/lead.routes'));
+app.use('/api/blogs', require('./routes/blog.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 
 // 404 handler - must be after all routes

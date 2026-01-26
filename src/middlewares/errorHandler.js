@@ -10,23 +10,23 @@ const errorHandler = (err, req, res, next) => {
   // Log error for debugging
   console.error('Error:', err);
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    return ApiResponse.error(res, message, 404);
+  // MongoDB bad ObjectId (BSON error)
+  if (err.name === 'BSONError' || err.message.includes('ObjectId')) {
+    const message = 'Resource not found or invalid ID format';
+    return ApiResponse.error(res, message, 400);
   }
 
-  // Mongoose duplicate key
+  // MongoDB duplicate key error
   if (err.code === 11000) {
-    const field = Object.keys(err.keyPattern)[0];
+    const field = err.keyPattern ? Object.keys(err.keyPattern)[0] : 'Field';
     const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     return ApiResponse.error(res, message, 400);
   }
 
-  // Mongoose validation error
+  // Generic validation error (could be from express-validator)
   if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map((val) => val.message);
-    return ApiResponse.error(res, 'Validation error', 400, errors);
+    const message = err.message || 'Validation error';
+    return ApiResponse.error(res, message, 400);
   }
 
   // JWT errors

@@ -1,42 +1,50 @@
 const express = require('express');
 const router = express.Router();
 
-// TODO: Import middleware and controllers
-// const { protect } = require('../middlewares/auth.middleware');
-// const propertyController = require('../controllers/property.controller');
+const propertyController = require('../controllers/property.controller');
+const { protect } = require('../middlewares/auth.middleware');
+const { authorize } = require('../middlewares/role.middleware');
 
-// Public routes
-router.get('/', (req, res) => {
-  res.status(501).json({ message: 'Get all properties - To be implemented in Phase 3' });
-});
+// @route   GET /api/properties
+// @desc    Get all properties
+// @access  Public
+router.get('/', propertyController.getProperties);
 
-router.get('/featured', (req, res) => {
-  res.status(501).json({ message: 'Get featured properties - To be implemented in Phase 3' });
-});
+// @route   GET /api/properties/my-listings
+// @desc    Get my properties (Agent)
+// @access  Private/Agent
+router.get('/my-listings', protect, authorize('agent'), propertyController.getMyProperties);
 
-router.get('/:slug', (req, res) => {
-  res.status(501).json({ message: 'Get property by slug - To be implemented in Phase 3' });
-});
+// @route   GET /api/properties/id/:id
+// @desc    Get property by ID
+// @access  Public
+router.get('/id/:id', propertyController.getPropertyBySlug); // Wait, this should probably be getById if I have it
 
-// Protected routes (require authentication)
-router.post('/', (req, res) => {
-  res.status(501).json({ message: 'Create property - To be implemented in Phase 3' });
-});
+// @route   GET /api/properties/slug/:slug
+// @desc    Get property by slug
+// @access  Public
+router.get('/slug/:slug', propertyController.getPropertyBySlug);
 
-router.put('/:id', (req, res) => {
-  res.status(501).json({ message: 'Update property - To be implemented in Phase 3' });
-});
+// @route   POST /api/properties
+// @desc    Create a new property
+// @access  Private/Agent/Admin
+router.post('/', protect, authorize('agent', 'admin'), propertyController.createProperty);
 
-router.delete('/:id', (req, res) => {
-  res.status(501).json({ message: 'Delete property - To be implemented in Phase 3' });
-});
+// @route   PUT /api/properties/:id
+// @desc    Update property
+// @access  Private/Agent/Admin
+router.put('/:id', protect, authorize('agent', 'admin'), propertyController.updateProperty);
 
-router.post('/:id/images', (req, res) => {
-  res.status(501).json({ message: 'Upload property images - To be implemented in Phase 3' });
-});
+// @route   DELETE /api/properties/:id
+// @desc    Delete property
+// @access  Private/Agent/Admin
+router.delete('/:id', protect, authorize('agent', 'admin'), propertyController.deleteProperty);
 
-router.post('/:id/views', (req, res) => {
-  res.status(501).json({ message: 'Increment views - To be implemented in Phase 3' });
-});
+const upload = require('../middlewares/upload.middleware');
+
+// @route   POST /api/properties/:id/images
+// @desc    Upload property images
+// @access  Private/Agent/Admin
+router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 10), propertyController.uploadPropertyImages);
 
 module.exports = router;

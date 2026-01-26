@@ -1,32 +1,28 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.status(501).json({ message: 'Get all users - To be implemented' });
-});
+const userController = require('../controllers/user.controller');
+const { protect } = require('../middlewares/auth.middleware');
+const { authorize } = require('../middlewares/role.middleware');
 
-router.get('/profile', (req, res) => {
-  res.status(501).json({ message: 'Get user profile - To be implemented in Phase 5' });
-});
+// @route   GET /api/users
+// @desc    Get all users (Admin only)
+// @access  Private/Admin
+router.get('/', protect, authorize('admin'), userController.getUsers);
 
-router.put('/profile', (req, res) => {
-  res.status(501).json({ message: 'Update profile - To be implemented in Phase 5' });
-});
+// @route   PUT /api/users/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, userController.updateProfile);
 
-router.put('/password', (req, res) => {
-  res.status(501).json({ message: 'Change password - To be implemented in Phase 5' });
-});
+// @route   GET /api/users/saved-properties
+// @desc    Get saved properties
+// @access  Private
+router.get('/saved-properties', protect, userController.getSavedProperties);
 
-router.get('/saved-properties', (req, res) => {
-  res.status(501).json({ message: 'Get saved properties - To be implemented in Phase 6' });
-});
-
-router.post('/saved-properties/:id', (req, res) => {
-  res.status(501).json({ message: 'Save property - To be implemented in Phase 6' });
-});
-
-router.delete('/saved-properties/:id', (req, res) => {
-  res.status(501).json({ message: 'Unsave property - To be implemented in Phase 6' });
-});
+// @route   GET /api/users/:id
+// @desc    Get user by ID
+// @access  Public
+router.get('/:id', userController.getUserById);
 
 module.exports = router;

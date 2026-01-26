@@ -1,44 +1,47 @@
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const path = require('path');
-const ApiResponse = require('../utils/apiResponse');
 
-// Standard Multer configuration for memory storage
-const storage = multer.memoryStorage();
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// File filter to only allow images
+// Configure Storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    // Determine folder based on route or query
+    const folder = req.baseUrl.includes('properties') ? 'stltd/properties' : 
+                   req.baseUrl.includes('projects') ? 'stltd/projects' : 
+                   req.baseUrl.includes('users') ? 'stltd/users/avatars' : 'stltd/others';
+    
+    return {
+      folder: folder,
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+      transformation: [{ width: 1200, height: 800, crop: 'limit' }], // Limit size
+      public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+    };
+  },
+});
+
+// File filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const mimetype = allowedTypes.test(file.mimetype);
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-  if (mimetype && extname) {
-    return cb(null, true);
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
   }
-  cb(new Error('Only images (jpeg, jpg, png, webp) are allowed!'), false);
 };
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter,
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
-/**
- * Handle Multer errors
- */
-const handleUploadError = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return ApiResponse.error(res, 'File size too large. Max limit is 5MB.', 400);
-    }
-    return ApiResponse.error(res, err.message, 400);
-  } else if (err) {
-    return ApiResponse.error(res, err.message, 400);
-  }
-  next();
-};
-
-module.exports = {
-  upload,
-  handleUploadError,
-};
+module.exports = upload;
