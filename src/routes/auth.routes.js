@@ -1,61 +1,56 @@
 const express = require('express');
 const router = express.Router();
-const {
-  register,
-  login,
-  getMe,
-  updateProfile,
-  forgotPassword,
-  resetPassword,
-  changePassword,
-} = require('../controllers/auth.controller');
-const { protect } = require('../middlewares/auth.middleware');
-const { body } = require('express-validator');
-const { validate } = require('../middlewares/validation.middleware');
 
-// Validation rules
-const registerValidation = [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long'),
-  body('phone').optional().trim(),
-  body('role').optional().isIn(['customer', 'agent']).withMessage('Invalid role'),
-];
+// TODO: Import controllers when created
+// const authController = require('../controllers/auth.controller');
 
-const loginValidation = [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').notEmpty().withMessage('Password is required'),
-];
+// @route   POST /api/auth/register
+// @desc    Register new user
+// @access  Public
+router.post('/register', (req, res) => {
+  res.status(501).json({ message: 'Register endpoint - To be implemented in Phase 2' });
+});
 
-const forgotPasswordValidation = [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-];
+// @route   POST /api/auth/login
+// @desc    Login user
+// @access  Public
+router.post('/login', (req, res) => {
+  res.status(501).json({ message: 'Login endpoint - To be implemented in Phase 2' });
+});
 
-const resetPasswordValidation = [
-  body('token').notEmpty().withMessage('Reset token is required'),
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long'),
-];
+// @route   POST /api/auth/logout
+// @desc    Logout user
+// @access  Private
+router.post('/logout', (req, res) => {
+  res.status(501).json({ message: 'Logout endpoint - To be implemented in Phase 2' });
+});
 
-const changePasswordValidation = [
-  body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('New password must be at least 8 characters long'),
-];
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', (req, res) => {
+  res.status(501).json({ message: 'Get user endpoint - To be implemented in Phase 2' });
+});
 
-// Public routes
-router.post('/register', registerValidation, validate, register);
-router.post('/login', loginValidation, validate, login);
-router.post('/forgot-password', forgotPasswordValidation, validate, forgotPassword);
-router.post('/reset-password', resetPasswordValidation, validate, resetPassword);
+// @route   POST /api/auth/forgot-password
+// @desc    Request password reset
+// @access  Public
+router.post('/forgot-password', (req, res) => {
+  res.status(501).json({ message: 'Forgot password endpoint - To be implemented in Phase 2' });
+});
 
-// Protected routes (require authentication)
-router.get('/me', protect, getMe);
-router.put('/profile', protect, updateProfile);
-router.post('/change-password', protect, changePasswordValidation, validate, changePassword);
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password', (req, res) => {
+  res.status(501).json({ message: 'Reset password endpoint - To be implemented in Phase 2' });
+});
+
+// @route   POST /api/auth/verify-email
+// @desc    Verify email address
+// @access  Public
+router.post('/verify-email', (req, res) => {
+  res.status(501).json({ message: 'Verify email endpoint - To be implemented in Phase 2' });
+});
 
 module.exports = router;

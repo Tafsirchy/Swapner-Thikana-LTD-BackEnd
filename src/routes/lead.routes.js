@@ -1,34 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const {
-  createLead,
-  getLeads,
-  getLead,
-  updateLead,
-  addNote,
-} = require('../controllers/lead.controller');
-const { protect } = require('../middlewares/auth.middleware');
-const { authorize } = require('../middlewares/role.middleware');
-const { body } = require('express-validator');
-const { validate } = require('../middlewares/validation.middleware');
 
-// Validation rules
-const createLeadValidation = [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('phone').trim().notEmpty().withMessage('Phone number is required'),
-  body('leadType')
-    .isIn(['property-inquiry', 'project-inquiry', 'contact-form', 'callback-request'])
-    .withMessage('Invalid lead type'),
-];
+// Public - Submit inquiry
+router.post('/', (req, res) => {
+  res.status(501).json({ message: 'Submit inquiry - To be implemented in Phase 3' });
+});
 
-// Public routes
-router.post('/', createLeadValidation, validate, createLead);
+// Protected - Get leads
+router.get('/', (req, res) => {
+  res.status(501).json({ message: 'Get all leads - To be implemented in Phase 3' });
+});
 
-// Protected routes (Agent/Admin)
-router.get('/', protect, authorize('agent', 'admin'), getLeads);
-router.get('/:id', protect, authorize('agent', 'admin'), getLead);
-router.put('/:id', protect, authorize('agent', 'admin'), updateLead);
-router.post('/:id/notes', protect, authorize('agent', 'admin'), addNote);
+router.get('/:id', (req, res) => {
+  res.status(501).json({ message: 'Get lead details - To be implemented in Phase 3' });
+});
+
+router.put('/:id/status', (req, res) => {
+  res.status(501).json({ message: 'Update lead status - To be implemented in Phase 3' });
+});
+
+router.post('/:id/notes', (req, res) => {
+  res.status(501).json({ message: 'Add note to lead - To be implemented in Phase 3' });
+});
 
 module.exports = router;
