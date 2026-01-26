@@ -5,6 +5,9 @@ const projectController = require('../controllers/project.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
+const { validate } = require('../middlewares/validation.middleware');
+const { createProjectValidator, updateProjectValidator } = require('../validators/project.validator');
+
 // @route   GET /api/projects
 // @desc    Get all projects
 // @access  Public
@@ -23,12 +26,12 @@ router.get('/slug/:slug', projectController.getProjectBySlug);
 // @route   POST /api/projects
 // @desc    Create a new project
 // @access  Private/Admin
-router.post('/', protect, authorize('admin'), projectController.createProject);
+router.post('/', protect, authorize('admin'), createProjectValidator, validate, projectController.createProject);
 
 // @route   PUT /api/projects/:id
 // @desc    Update project
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin'), projectController.updateProject);
+router.put('/:id', protect, authorize('admin'), updateProjectValidator, validate, projectController.updateProject);
 
 // @route   DELETE /api/projects/:id
 // @desc    Delete project

@@ -4,15 +4,23 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
 
+const { validate } = require('../middlewares/validation.middleware');
+const { 
+  registerValidator, 
+  loginValidator, 
+  emailValidator, 
+  passwordValidator 
+} = require('../validators/auth.validator');
+
 // @route   POST /api/auth/register
 // @desc    Register new user
 // @access  Public
-router.post('/register', authController.register);
+router.post('/register', registerValidator, validate, authController.register);
 
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', authController.login);
+router.post('/login', loginValidator, validate, authController.login);
 
 // @route   POST /api/auth/verify-email
 // @desc    Verify email address
@@ -22,12 +30,12 @@ router.post('/verify-email', authController.verifyEmail);
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset
 // @access  Public
-router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password', emailValidator, validate, authController.forgotPassword);
 
 // @route   POST /api/auth/reset-password
 // @desc    Reset password with token
 // @access  Public
-router.post('/reset-password', authController.resetPassword);
+router.post('/reset-password', passwordValidator, validate, authController.resetPassword);
 
 // @route   GET /api/auth/me
 // @desc    Get current user profile

@@ -10,15 +10,14 @@ const { ObjectId } = require('mongodb');
  */
 const createLead = async (req, res, next) => {
   try {
-    const { name, email, phone, message, propertyId, interestType } = req.query.propertyId ? req.query : req.body;
+    const { name, email, phone, message, interestType } = req.body;
     
-    // Explicitly handle both query and body for flexibility
     const leadData = {
-      name: name || req.body.name,
-      email: (email || req.body.email).toLowerCase(),
-      phone: phone || req.body.phone,
-      message: message || req.body.message,
-      interestType: interestType || req.body.interestType || 'property',
+      name,
+      email: email.toLowerCase(),
+      phone,
+      message,
+      interestType: interestType || 'property',
       status: 'new',
       createdAt: new Date(),
     };

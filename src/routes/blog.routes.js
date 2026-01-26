@@ -4,6 +4,9 @@ const blogController = require('../controllers/blog.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
+const { validate } = require('../middlewares/validation.middleware');
+const { createBlogValidator, updateBlogValidator } = require('../validators/blog.validator');
+
 // @route   GET /api/blogs
 // @desc    Get all blogs
 // @access  Public
@@ -22,12 +25,12 @@ router.get('/slug/:slug', blogController.getBlogBySlug);
 // @route   POST /api/blogs
 // @desc    Create a blog
 // @access  Private/Admin
-router.post('/', protect, authorize('admin'), blogController.createBlog);
+router.post('/', protect, authorize('admin'), createBlogValidator, validate, blogController.createBlog);
 
 // @route   PUT /api/blogs/:id
 // @desc    Update a blog
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin'), blogController.updateBlog);
+router.put('/:id', protect, authorize('admin'), updateBlogValidator, validate, blogController.updateBlog);
 
 // @route   DELETE /api/blogs/:id
 // @desc    Delete a blog

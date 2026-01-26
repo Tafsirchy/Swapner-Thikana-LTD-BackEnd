@@ -22,14 +22,14 @@ const apiLimiter = rateLimit({
  * Stricter rate limiter for sensitive endpoints (auth)
  */
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each IP to 20 attempts per hour
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Increased for development: 100 attempts per 15 mins
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     return ApiResponse.error(
       res, 
-      'Too many auth attempts, please try again after an hour', 
+      'Too many auth attempts, please try again after 15 minutes', 
       429
     );
   },

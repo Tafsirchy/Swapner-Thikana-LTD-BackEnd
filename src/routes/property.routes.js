@@ -5,6 +5,9 @@ const propertyController = require('../controllers/property.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
+const { validate } = require('../middlewares/validation.middleware');
+const { createPropertyValidator, updatePropertyValidator } = require('../validators/property.validator');
+
 // @route   GET /api/properties
 // @desc    Get all properties
 // @access  Public
@@ -18,7 +21,7 @@ router.get('/my-listings', protect, authorize('agent'), propertyController.getMy
 // @route   GET /api/properties/id/:id
 // @desc    Get property by ID
 // @access  Public
-router.get('/id/:id', propertyController.getPropertyBySlug); // Wait, this should probably be getById if I have it
+router.get('/id/:id', propertyController.getPropertyById);
 
 // @route   GET /api/properties/slug/:slug
 // @desc    Get property by slug
@@ -28,12 +31,12 @@ router.get('/slug/:slug', propertyController.getPropertyBySlug);
 // @route   POST /api/properties
 // @desc    Create a new property
 // @access  Private/Agent/Admin
-router.post('/', protect, authorize('agent', 'admin'), propertyController.createProperty);
+router.post('/', protect, authorize('agent', 'admin'), createPropertyValidator, validate, propertyController.createProperty);
 
 // @route   PUT /api/properties/:id
 // @desc    Update property
 // @access  Private/Agent/Admin
-router.put('/:id', protect, authorize('agent', 'admin'), propertyController.updateProperty);
+router.put('/:id', protect, authorize('agent', 'admin'), updatePropertyValidator, validate, propertyController.updateProperty);
 
 // @route   DELETE /api/properties/:id
 // @desc    Delete property

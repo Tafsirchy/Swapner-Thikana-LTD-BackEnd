@@ -17,6 +17,24 @@ const getUsers = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all agents (Public)
+ * @route   GET /api/users/agents
+ * @access  Public
+ */
+const getAgents = async (req, res, next) => {
+  try {
+    const agents = await Users().find(
+      { role: 'agent' }, 
+      { projection: { password: 0, savedProperties: 0, createdAt: 0, updatedAt: 0 } }
+    ).toArray();
+    
+    return ApiResponse.success(res, 'Agents fetched', { agents });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Update user profile
  * @route   PUT /api/users/profile
  * @access  Private
@@ -106,6 +124,7 @@ const getSavedProperties = async (req, res, next) => {
 
 module.exports = {
   getUsers,
+  getAgents,
   updateProfile,
   getUserById,
   getSavedProperties,
