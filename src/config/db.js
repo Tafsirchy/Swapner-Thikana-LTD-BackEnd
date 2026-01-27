@@ -49,7 +49,8 @@ const connectDB = async () => {
     return db;
   } catch (error) {
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+    // Throw error instead of process.exit for serverless compatibility
+    throw new Error(`Database connection failed: ${error.message}`);
   }
 };
 
