@@ -103,20 +103,82 @@ const getUserById = async (req, res, next) => {
  */
 const getSavedProperties = async (req, res, next) => {
   try {
-    const user = await Users().findOne({ _id: new ObjectId(req.user._id) });
+    const { Properties } = require('../models/Property');
     
+    const user = await Users().findOne(
+      { _id: new ObjectId(req.user._id) },
+      { projection: { savedProperties: 1 } }
+    );
+
     if (!user || !user.savedProperties || user.savedProperties.length === 0) {
-      return ApiResponse.success(res, 'No saved properties found', { properties: [] });
+      return ApiResponse.success(res, 'No saved properties', { properties: [] });
     }
 
-    // Convert string IDs to ObjectIds if necessary
-    const savedIds = user.savedProperties.map(id => new ObjectId(id));
-
-    const properties = await require('../models/Property').Properties()
-      .find({ _id: { $in: savedIds } })
-      .toArray();
+    const savedPropertyIds = user.savedProperties.map(id => new ObjectId(id));
+    const properties = await Properties().find({
+      _id: { $in: savedPropertyIds }
+    }).toArray();
 
     return ApiResponse.success(res, 'Saved properties fetched', { properties });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Add property to wishlist
+ * @route   POST /api/users/saved-properties/:propertyId
+ * @access  Private
+ */
+const addToWishlist = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+    const { Properties } = require('../models/Property');
+
+    // Check if property exists
+    const property = await Properties().findOne({ _id: new ObjectId(propertyId) });
+    if (!property) {
+      return ApiResponse.error(res, 'Property not found', 404);
+    }
+
+    // Check if already saved
+    const user = await Users().findOne(
+      { _id: new ObjectId(req.user._id) },
+      { projection: { savedProperties: 1 } }
+    );
+
+    if (user.savedProperties && user.savedProperties.some(id => id.toString() === propertyId)) {
+      return ApiResponse.error(res, 'Property already in wishlist', 400);
+    }
+
+    // Add to savedProperties array
+    await Users().updateOne(
+      { _id: new ObjectId(req.user._id) },
+      { $addToSet: { savedProperties: new ObjectId(propertyId) } }
+    );
+
+    return ApiResponse.success(res, 'Property added to wishlist', { propertyId });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Remove property from wishlist
+ * @route   DELETE /api/users/saved-properties/:propertyId
+ * @access  Private
+ */
+const removeFromWishlist = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+
+    // Remove from savedProperties array
+    await Users().updateOne(
+      { _id: new ObjectId(req.user._id) },
+      { $pull: { savedProperties: new ObjectId(propertyId) } }
+    );
+
+    return ApiResponse.success(res, 'Property removed from wishlist');
   } catch (error) {
     next(error);
   }
@@ -128,4 +190,6 @@ module.exports = {
   updateProfile,
   getUserById,
   getSavedProperties,
+  addToWishlist,
+  removeFromWishlist
 };

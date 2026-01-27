@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to STLTD Properties</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0a0f1e; color: #e4e4e7; line-height: 1.6; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%); border-radius: 20px; padding: 50px 30px; text-align: center; margin-bottom: 30px; }
+    .header-icon { font-size: 64px; margin-bottom: 20px; }
+    .logo { font-size: 32px; font-weight: bold; color: #0a0f1e; margin-bottom: 10px; }
+    .header-title { font-size: 28px; color: #0a0f1e; font-weight: bold; }
+    .content { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 40px 30px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .greeting { font-size: 22px; font-weight: 600; color: #f4f4f5; margin-bottom: 20px; }
+    .text { color: #d4d4d8; margin-bottom: 20px; line-height: 1.8; font-size: 15px; }
+    .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 30px 0; }
+    .feature-item { background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .feature-icon { font-size: 32px; margin-bottom: 10px; }
+    .feature-title { color: #d4af37; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+    .feature-desc { color: #a1a1aa; font-size: 12px; }
+    .cta-button { display: inline-block; background: #d4af37; color: #0a0f1e; padding: 16px 50px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px; margin: 10px auto; }
+    .footer { text-align: center; padding: 30px 20px; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 30px; }
+    .footer a { color: #d4af37; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">🎉</div>
+      <div class="logo">🏛️ STLTD Properties</div>
+      <h1 class="header-title">Welcome Aboard!</h1>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <p class="greeting">Welcome, {{userName}}! 👋</p>
+      
+      <p class="text">
+        We're thrilled to have you join STLTD Properties, Bangladesh's premier platform for exclusive real estate opportunities. Your journey to finding the perfect property starts here!
+      </p>
+
+      <p class="text">
+        Your account has been successfully created, and you now have access to our complete range of premium services.
+      </p>
+
+      <!-- Features -->
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-title">Advanced Search</div>
+          <div class="feature-desc">Filter by location, price, amenities & more</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">❤️</div>
+          <div class="feature-title">Save Favorites</div>
+          <div class="feature-desc">Build your wishlist of dream properties</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔔</div>
+          <div class="feature-title">Instant Alerts</div>
+          <div class="feature-desc">Get notified of new matching properties</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💬</div>
+          <div class="feature-title">Direct Contact</div>
+          <div class="feature-desc">Connect with agents instantly</div>
+        </div>
+      </div>
+
+      <p class="text" style="margin-top: 30px;">
+        Ready to explore? Start browsing our curated collection of premium properties today!
+      </p>
+
+      <div style="text-align: center;">
+        <a href="{{propertiesUrl}}" class="cta-button">Browse Properties →</a>
+      </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 16px; padding: 25px; margin-bottom: 20px;">
+      <h3 style="color: #d4af37; font-size: 16px; margin-bottom: 15px;">💡 Quick Tips to Get Started:</h3>
+      <ul style="color: #d4d4d8; font-size: 14px; line-height: 2; padding-left: 20px;">
+        <li>Complete your profile for personalized recommendations</li>
+        <li>Save your search criteria to receive instant alerts</li>
+        <li>Use the mortgage calculator to plan your budget</li>
+        <li>Contact agents directly through property listings</li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p style="margin-bottom: 10px;">
+        <a href="{{dashboardUrl}}">My Dashboard</a> | 
+        <a href="{{helpUrl}}">Help Center</a> | 
+        <a href="{{contactUrl}}">Contact Us</a>
+      </p>
+      <p>© 2026 STLTD Properties. All rights reserved.</p>
+      <p style="color: #52525b; font-size: 11px; margin-top: 10px;">
+        Discover Exclusive Properties in Bangladesh
+      </p>
+    </div>
+  </div>
+</body>
+</html>

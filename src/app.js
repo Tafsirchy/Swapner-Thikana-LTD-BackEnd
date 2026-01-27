@@ -45,6 +45,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // app.use('/api/auth', authLimiter); // Stricter limit for auth routes
 
 // Health check endpoint
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -61,6 +62,9 @@ app.use('/api/projects', require('./routes/project.routes'));
 app.use('/api/leads', require('./routes/lead.routes'));
 app.use('/api/blogs', require('./routes/blog.routes'));
 app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/saved-searches', require('./routes/savedSearch.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {

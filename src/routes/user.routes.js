@@ -26,6 +26,16 @@ router.put('/profile', protect, updateProfileValidator, validate, userController
 // @access  Private
 router.get('/saved-properties', protect, userController.getSavedProperties);
 
+// @route   POST /api/users/saved-properties/:propertyId
+// @desc    Add property to saved/wishlist
+// @access  Private
+router.post('/saved-properties/:propertyId', protect, userController.addToWishlist);
+
+// @route   DELETE /api/users/saved-properties/:propertyId
+// @desc    Remove property from saved/wishlist
+// @access  Private
+router.delete('/saved-properties/:propertyId', protect, userController.removeFromWishlist);
+
 // @route   GET /api/users/agents
 // @desc    Get all agents
 // @access  Public

@@ -2,6 +2,8 @@ const { Leads } = require('../models/Lead');
 const { Properties } = require('../models/Property');
 const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
+const { createNotificationHelper } = require('./notification.controller');
+const { sendInquiryConfirmationEmail } = require('../utils/emailSender');
 
 /**
  * @desc    Create a new lead (inquiry)
@@ -10,31 +12,53 @@ const { ObjectId } = require('mongodb');
  */
 const createLead = async (req, res, next) => {
   try {
-    const { name, email, phone, message, interestType } = req.body;
-    
-    const leadData = {
+    const { name, email, phone, message, propertyId, interestType } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !phone || !propertyId) {
+      return ApiResponse.error(res, 'Please provide all required fields', 400);
+    }
+
+    // Check if property exists
+    const property = await Properties().findOne({ _id: new ObjectId(propertyId) });
+    if (!property) {
+      return ApiResponse.error(res, 'Property not found', 404);
+    }
+
+    // Create lead
+    const lead = {
       name,
-      email: email.toLowerCase(),
+      email,
       phone,
-      message,
+      message: message || '',
+      property: new ObjectId(propertyId),
+      agent: property.agent ? new ObjectId(property.agent) : null,
       interestType: interestType || 'property',
       status: 'new',
       createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-    const finalPropertyId = propertyId || req.body.propertyId;
-    if (finalPropertyId) {
-      leadData.propertyId = new ObjectId(finalPropertyId);
-      
-      // Try to find property to get the agent ID
-      const property = await Properties().findOne({ _id: leadData.propertyId });
-      if (property) {
-        leadData.assignedTo = property.agent;
-        leadData.propertyName = property.title;
-      }
+    const result = await Leads().insertOne(lead);
+    const createdLead = { ...lead, _id: result.insertedId };
+
+    // Send confirmation email to user (async, don't wait)
+    try {
+      await sendInquiryConfirmationEmail(createdLead, property);
+    } catch (emailError) {
+      console.error('Failed to send inquiry confirmation email:', emailError);
+      // Don't fail the request if email fails
     }
 
-    const result = await Leads().insertOne(leadData);
+    // Create notification for agent if exists
+    if (property.agent) {
+      await createNotificationHelper(
+        property.agent,
+        'New Inquiry Received',
+        `You have a new inquiry for property: ${property.title}.`,
+        `/agent/leads/${createdLead._id}`
+      );
+    }
 
     return ApiResponse.success(res, 'Inquiry submitted successfully. We will contact you soon.', { leadId: result.insertedId }, 201);
   } catch (error) {
