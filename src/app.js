@@ -39,9 +39,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
-const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
-app.use('/api/', apiLimiter);
-app.use('/api/auth', authLimiter); // Stricter limit for auth routes
+// Rate limiting
+// const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
+// app.use('/api/', apiLimiter);
+// app.use('/api/auth', authLimiter); // Stricter limit for auth routes
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
