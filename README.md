@@ -179,12 +179,15 @@ Successfully connected to MongoDB Atlas:
 - [x] Authentication middleware
 - [x] Error handling
 - [x] Security middleware
-- [ ] Authentication endpoints
-- [ ] Property CRUD endpoints
-- [ ] Project management
-- [ ] Lead/inquiry system
-- [ ] User management
-- [ ] Blog CMS
+- [x] Authentication endpoints (Register, Login, Reset Password)
+- [x] Property CRUD endpoints (with geospatial queries)
+- [x] Project management
+- [x] Lead/inquiry system (Kanban support)
+- [x] User management (Roles: Admin, Agent, Customer)
+- [x] Blog CMS
+- [x] Notification System (FCM & Email)
+- [x] Automated Cron Jobs (Reminders & Alerts)
+- [x] Security Hardening (Helmet, Rate Limiting)
 - [ ] API documentation (Swagger)
 
 ## 👥 Company

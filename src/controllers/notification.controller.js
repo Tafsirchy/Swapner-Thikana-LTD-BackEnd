@@ -139,12 +139,14 @@ const createNotification = async (req, res, next) => {
   }
 };
 
+const { sendPushNotification } = require('../utils/notificationService');
+
 /**
  * Helper function to create notification (for use in other controllers)
  */
 const createNotificationHelper = async (userId, type, title, message, link = null, metadata = {}) => {
   try {
-    await Notifications().insertOne({
+    const notification = {
       user: new ObjectId(userId),
       type,
       title,
@@ -154,9 +156,67 @@ const createNotificationHelper = async (userId, type, title, message, link = nul
       metadata,
       createdAt: new Date(),
       updatedAt: new Date()
+    };
+
+    await Notifications().insertOne(notification);
+
+    // Send Push Notification
+    await sendPushNotification(new ObjectId(userId), {
+      title,
+      body: message,
+      data: {
+        link: link || '',
+        type: type || ''
+      }
     });
+
   } catch (error) {
     console.error('Error creating notification:', error);
+  }
+};
+
+/**
+ * @desc    Register FCM device token
+ * @route   POST /api/notifications/fcm-token
+ * @access  Private
+ */
+const registerFcmToken = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return ApiResponse.error(res, 'FCM token is required', 400);
+    }
+
+    const { Users } = require('../models/User');
+    await Users().updateOne(
+      { _id: req.user._id },
+      { $addToSet: { fcmTokens: token } }
+    );
+
+    return ApiResponse.success(res, 'Device token registered successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Send test notification to current user
+ * @route   POST /api/notifications/test
+ * @access  Private
+ */
+const sendTestNotification = async (req, res, next) => {
+  try {
+    await createNotificationHelper(
+      req.user._id,
+      'Test',
+      'System Test',
+      'This is a test push notification from Shwapner Thikana.',
+      '/dashboard'
+    );
+
+    return ApiResponse.success(res, 'Test notification triggered');
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -166,5 +226,7 @@ module.exports = {
   markAllAsRead,
   deleteNotification,
   createNotification,
-  createNotificationHelper
+  registerFcmToken,
+  createNotificationHelper,
+  sendTestNotification
 };

@@ -122,7 +122,52 @@ const processScheduledAlerts = async (frequency) => {
   }
 };
 
+/**
+ * Process upcoming reminders and trigger notifications
+ */
+const processUpcomingReminders = async () => {
+  try {
+    const { Reminders } = require('../models/Reminder');
+    const { createNotificationHelper } = require('../controllers/notification.controller');
+    
+    // Find due reminders that haven't been sent yet
+    const now = new Date();
+    const upcomingRange = new Date(now.getTime() + 15 * 60 * 1000); // Check for reminders in the next 15 mins
+
+    const dueReminders = await Reminders().find({
+      dueDate: { $lte: upcomingRange },
+      isCompleted: false,
+      isSent: false
+    }).toArray();
+
+    if (dueReminders.length === 0) return;
+
+    console.log(`⏰ Processing ${dueReminders.length} due reminders...`);
+
+    for (const reminder of dueReminders) {
+      // Create in-app notification
+      await createNotificationHelper(
+        reminder.user,
+        'Reminder Due',
+        `Follow-up: ${reminder.title}`,
+        reminder.note || 'You have a scheduled follow-up reminder.',
+        reminder.lead ? `/dashboard/leads/${reminder.lead}` : '/dashboard',
+        { reminderId: reminder._id }
+      );
+
+      // Mark as sent
+      await Reminders().updateOne(
+        { _id: reminder._id },
+        { $set: { isSent: true, updatedAt: new Date() } }
+      );
+    }
+  } catch (error) {
+    console.error('Error processing reminders:', error);
+  }
+};
+
 module.exports = {
   handleNewProperty,
-  processScheduledAlerts
+  processScheduledAlerts,
+  processUpcomingReminders
 };

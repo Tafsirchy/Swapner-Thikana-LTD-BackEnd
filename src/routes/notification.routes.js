@@ -6,7 +6,9 @@ const {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-  createNotification
+  createNotification,
+  registerFcmToken,
+  sendTestNotification
 } = require('../controllers/notification.controller');
 
 // All routes require authentication
@@ -19,6 +21,12 @@ router.route('/')
 
 // Mark all as read
 router.put('/read-all', markAllAsRead);
+
+// Register FCM token
+router.post('/fcm-token', registerFcmToken);
+
+// Add POST /test route
+router.post('/test', sendTestNotification);
 
 // Single notification operations
 router.route('/:id')

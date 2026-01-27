@@ -184,6 +184,84 @@ const removeFromWishlist = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Add property to recently viewed
+ * @route   POST /api/users/recently-viewed/:propertyId
+ * @access  Private
+ */
+const addRecentlyViewed = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+    const userId = new ObjectId(req.user._id);
+
+    // Filter out current property if it exists, push to front, then slice
+    await Users().updateOne(
+      { _id: userId },
+      [
+        {
+          $set: {
+            recentlyViewed: {
+              $slice: [
+                {
+                  $concatArrays: [
+                    [new ObjectId(propertyId)],
+                    {
+                      $filter: {
+                        input: { $ifNull: ["$recentlyViewed", []] },
+                        as: "id",
+                        cond: { $ne: ["$$id", new ObjectId(propertyId)] }
+                      }
+                    }
+                  ]
+                },
+                10 // Limit to 10 items
+              ]
+            }
+          }
+        }
+      ]
+    );
+
+    return ApiResponse.success(res, 'Recently viewed updated');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get recently viewed properties
+ * @route   GET /api/users/recently-viewed
+ * @access  Private
+ */
+const getRecentlyViewed = async (req, res, next) => {
+  try {
+    const { Properties } = require('../models/Property');
+    
+    const user = await Users().findOne(
+      { _id: new ObjectId(req.user._id) },
+      { projection: { recentlyViewed: 1 } }
+    );
+
+    if (!user || !user.recentlyViewed || user.recentlyViewed.length === 0) {
+      return ApiResponse.success(res, 'No recently viewed properties', { properties: [] });
+    }
+
+    // Keep the order of recent views
+    const properties = await Properties().find({
+      _id: { $in: user.recentlyViewed }
+    }).toArray();
+
+    // Map back to original order
+    const orderedProperties = user.recentlyViewed.map(id => 
+      properties.find(p => p._id.toString() === id.toString())
+    ).filter(Boolean);
+
+    return ApiResponse.success(res, 'Recently viewed properties fetched', { properties: orderedProperties });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getAgents,
@@ -191,5 +269,7 @@ module.exports = {
   getUserById,
   getSavedProperties,
   addToWishlist,
-  removeFromWishlist
+  removeFromWishlist,
+  addRecentlyViewed,
+  getRecentlyViewed
 };

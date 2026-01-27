@@ -37,9 +37,18 @@ router.post('/saved-properties/:propertyId', protect, userController.addToWishli
 router.delete('/saved-properties/:propertyId', protect, userController.removeFromWishlist);
 
 // @route   GET /api/users/agents
-// @desc    Get all agents
 // @access  Public
 router.get('/agents', userController.getAgents);
+
+// @route   GET /api/users/recently-viewed
+// @desc    Get recently viewed properties
+// @access  Private
+router.get('/recently-viewed', protect, userController.getRecentlyViewed);
+
+// @route   POST /api/users/recently-viewed/:propertyId
+// @desc    Add property to recently viewed
+// @access  Private
+router.post('/recently-viewed/:propertyId', protect, userController.addRecentlyViewed);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID

@@ -13,6 +13,10 @@ const {
   rejectProperty,
   toggleFeatured
 } = require('../controllers/admin.controller');
+const {
+  getEmailPreview,
+  getEmailTemplates
+} = require('../controllers/emailPreview.controller');
 
 // All routes require authentication and admin role
 router.use(protect);
@@ -32,5 +36,9 @@ router.get('/properties', getAllProperties);
 router.put('/properties/:id/approve', approveProperty);
 router.put('/properties/:id/reject', rejectProperty);
 router.put('/properties/:id/feature', toggleFeatured);
+
+// Email Templates
+router.get('/email-templates', getEmailTemplates);
+router.get('/email-preview/:type', getEmailPreview);
 
 module.exports = router;

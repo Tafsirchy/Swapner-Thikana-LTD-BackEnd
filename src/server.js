@@ -10,6 +10,10 @@ const startServer = async () => {
     // Connect to database
     await connectDB();
 
+    // Initialize Firebase
+    const { initializeFirebase } = require('./utils/notificationService');
+    initializeFirebase();
+
     const server = app.listen(PORT, () => {
       console.log(`\n🚀 Server is running in ${process.env.NODE_ENV || 'development'} mode`);
       console.log(`📡 Server URL: http://localhost:${PORT}`);
@@ -30,7 +34,13 @@ const startServer = async () => {
         processScheduledAlerts('weekly');
       });
 
-      console.log('⏰ Alert cron jobs initialized');
+      // Reminders Check every 5 minutes
+      const { processUpcomingReminders } = require('./utils/alertService');
+      cron.schedule('*/5 * * * *', () => {
+        processUpcomingReminders();
+      });
+
+      console.log('⏰ Alert & Reminder cron jobs initialized');
     });
 
     // Handle unhandled promise rejections

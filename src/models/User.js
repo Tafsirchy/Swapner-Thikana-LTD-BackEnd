@@ -12,6 +12,7 @@ const Users = () => getDB().collection('users');
 const createIndexes = async (db) => {
   await db.collection('users').createIndex({ email: 1 }, { unique: true });
   await db.collection('users').createIndex({ role: 1 });
+  await db.collection('users').createIndex({ fcmTokens: 1 });
 };
 
 module.exports = {

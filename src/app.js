@@ -39,10 +39,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
-// Rate limiting
-// const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
-// app.use('/api/', apiLimiter);
-// app.use('/api/auth', authLimiter); // Stricter limit for auth routes
+const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
+app.use('/api/', apiLimiter);
+app.use('/api/auth', authLimiter); // Stricter limit for auth routes
 
 // Health check endpoint
 // Health check endpoint
@@ -66,6 +65,9 @@ app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/saved-searches', require('./routes/savedSearch.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
+app.use('/api/analytics', require('./routes/analytics.routes'));
+app.use('/api/reminders', require('./routes/reminder.routes'));
+app.use('/api/wishlists', require('./routes/wishlist.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
