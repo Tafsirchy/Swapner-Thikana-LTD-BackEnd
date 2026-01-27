@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Status Update</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .email-body { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { width: 150px; height: auto; margin-bottom: 20px; }
+        .status-badge { display: inline-block; padding: 10px 20px; border-radius: 50px; background: #D4AF37; color: #1a1a1a; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; margin-top: 10px; }
+        .content { margin-bottom: 30px; }
+        .property-box { background: #f8f8f8; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #D4AF37; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+        .btn { display: inline-block; padding: 14px 30px; background: #D4AF37; color: #1a1a1a; text-decoration: none; border-radius: 12px; font-weight: bold; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-body">
+            <div class="header">
+                <img src="{{logoUrl}}" alt="STLTD Properties" class="logo">
+                <h1>Status Update</h1>
+            </div>
+            <div class="content">
+                <p>Hello <strong>{{userName}}</strong>,</p>
+                <p>We're writing to let you know that the status of your inquiry has been updated:</p>
+                
+                <div style="text-align: center;">
+                    <span class="status-badge">{{newStatus}}</span>
+                </div>
+
+                <div class="property-box">
+                    <p style="margin: 0; font-size: 14px; color: #666;">Property Reference:</p>
+                    <h3 style="margin: 5px 0;">{{propertyTitle}}</h3>
+                </div>
+
+                <p>Our agent is actively working on your request. You can track all your inquiries and updates through your dashboard.</p>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="{{dashboardUrl}}" class="btn">View Dashboard</a>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>&copy; 2024 Shwapner Thikana Ltd. All rights reserved.</p>
+                <p>If you have any questions, please reply to this email or visit our <a href="{{contactUrl}}">contact page</a>.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

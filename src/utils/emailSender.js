@@ -153,9 +153,31 @@ const sendWelcomeEmail = async (user) => {
   });
 };
 
+/**
+ * Send lead status update email
+ */
+const sendLeadStatusUpdateEmail = async (lead, newStatus) => {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  
+  return sendEmail({
+    to: lead.email,
+    subject: `🔔 Update on your inquiry - STLTD Properties`,
+    template: 'lead-status-update',
+    data: {
+      userName: lead.name,
+      newStatus: newStatus.charAt(0).toUpperCase() + newStatus.slice(1),
+      propertyTitle: lead.propertyName || 'Property Inquiry',
+      logoUrl: `${baseUrl}/logo.png`,
+      dashboardUrl: `${baseUrl}/dashboard`,
+      contactUrl: `${baseUrl}/contact`
+    }
+  });
+};
+
 module.exports = {
   sendEmail,
   sendNewMatchEmail,
   sendInquiryConfirmationEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendLeadStatusUpdateEmail
 };

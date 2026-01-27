@@ -15,6 +15,22 @@ const startServer = async () => {
       console.log(`📡 Server URL: http://localhost:${PORT}`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
       console.log(`\n⏰ Started at: ${new Date().toLocaleString()}\n`);
+
+      // Initialize Cron Jobs for Alerts
+      const cron = require('node-cron');
+      const { processScheduledAlerts } = require('./utils/alertService');
+
+      // Daily Digest at 9:00 AM
+      cron.schedule('0 9 * * *', () => {
+        processScheduledAlerts('daily');
+      });
+
+      // Weekly Digest on Monday 10:00 AM
+      cron.schedule('0 10 * * 1', () => {
+        processScheduledAlerts('weekly');
+      });
+
+      console.log('⏰ Alert cron jobs initialized');
     });
 
     // Handle unhandled promise rejections

@@ -23,9 +23,11 @@ router.get('/my-inquiries', protect, leadController.getMyInquiries);
 // @access  Private
 router.get('/', protect, authorize('agent', 'admin'), leadController.getLeads);
 
-// @route   PATCH /api/leads/:id/status
-// @desc    Update lead status
-// @access  Private
 router.patch('/:id/status', protect, authorize('agent', 'admin'), updateLeadStatusValidator, validate, leadController.updateLeadStatus);
+
+// @route   POST /api/leads/:id/notes
+// @desc    Add a note to a lead
+// @access  Private (Agent/Admin)
+router.post('/:id/notes', protect, authorize('agent', 'admin'), leadController.addLeadNote);
 
 module.exports = router;

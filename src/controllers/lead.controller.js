@@ -116,6 +116,16 @@ const updateLeadStatus = async (req, res, next) => {
        { $set: { status, updatedAt: new Date() } }
     );
 
+    // Notify user about status change if relevant (Async)
+    const { sendLeadStatusUpdateEmail } = require('../utils/emailSender');
+    if (status === 'contacted' || status === 'converted') {
+      try {
+        await sendLeadStatusUpdateEmail(lead, status);
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError);
+      }
+    }
+
     return ApiResponse.success(res, 'Lead status updated');
   } catch (error) {
     next(error);
@@ -141,9 +151,45 @@ const getMyInquiries = async (req, res, next) => {
   }
 };
 
+const addLeadNote = async (req, res, next) => {
+  try {
+    const { text } = req.body;
+    const leadId = new ObjectId(req.params.id);
+
+    if (!text) {
+      return ApiResponse.error(res, 'Note text is required', 400);
+    }
+
+    const note = {
+      _id: new ObjectId(),
+      text,
+      author: new ObjectId(req.user._id),
+      authorName: req.user.name,
+      createdAt: new Date()
+    };
+
+    const result = await Leads().updateOne(
+      { _id: leadId },
+      { 
+        $push: { notes: note },
+        $set: { updatedAt: new Date() }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return ApiResponse.error(res, 'Lead not found', 404);
+    }
+
+    return ApiResponse.success(res, 'Note added successfully', { note });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
   updateLeadStatus,
   getMyInquiries,
+  addLeadNote,
 };

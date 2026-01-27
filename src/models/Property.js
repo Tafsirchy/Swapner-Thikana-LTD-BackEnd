@@ -16,6 +16,7 @@ const createIndexes = async (db) => {
   await db.collection('properties').createIndex({ price: 1 });
   await db.collection('properties').createIndex({ featured: 1, createdAt: -1 });
   await db.collection('properties').createIndex({ agent: 1 });
+  await db.collection('properties').createIndex({ 'coordinates.lat': 1, 'coordinates.lng': 1 });
 };
 
 module.exports = {

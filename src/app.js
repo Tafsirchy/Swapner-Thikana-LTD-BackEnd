@@ -65,6 +65,7 @@ app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/saved-searches', require('./routes/savedSearch.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/reviews', require('./routes/review.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
