@@ -176,11 +176,18 @@ const getMyProperties = async (req, res, next) => {
  * @access  Public
  */
 const getPropertyBySlug = async (req, res, next) => {
-  try {
-    console.log(`Fetching property for slug: ${req.params.slug}`);
+    // Build match query: match by slug OR by ID (if slug is a valid ObjectId)
+    const matchQuery = { $or: [{ slug: req.params.slug }] };
+    
+    if (ObjectId.isValid(req.params.slug)) {
+      matchQuery.$or.push({ _id: new ObjectId(req.params.slug) });
+    }
+
+    console.log(`Fetching property for: ${req.params.slug}`, matchQuery);
+
     // Use aggregation to find property and populate agent
     const results = await Properties().aggregate([
-      { $match: { slug: req.params.slug } },
+      { $match: matchQuery },
       {
         $lookup: {
           from: 'users',
