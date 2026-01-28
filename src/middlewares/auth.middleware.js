@@ -32,7 +32,7 @@ const protect = async (req, res, next) => {
     );
 
     if (!req.user) {
-      return ApiResponse.error(res, 'User not found', 404);
+      return ApiResponse.error(res, 'User not found or account deactivated', 401);
     }
 
     if (!req.user.isActive) {

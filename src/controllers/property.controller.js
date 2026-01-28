@@ -177,17 +177,42 @@ const getMyProperties = async (req, res, next) => {
  */
 const getPropertyBySlug = async (req, res, next) => {
   try {
-    const property = await Properties().findOne({ slug: req.params.slug });
+    console.log(`Fetching property for slug: ${req.params.slug}`);
+    // Use aggregation to find property and populate agent
+    const results = await Properties().aggregate([
+      { $match: { slug: req.params.slug } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'agent',
+          foreignField: '_id',
+          as: 'agentDetails'
+        }
+      },
+      {
+        $addFields: {
+          agent: { $arrayElemAt: ['$agentDetails', 0] }
+        }
+      },
+      {
+        $project: {
+          agentDetails: 0,
+          'agent.password': 0
+        }
+      }
+    ]).toArray();
+
+    const property = results[0];
 
     if (!property) {
       return ApiResponse.error(res, 'Property not found', 404);
     }
 
-    // Increment views
-    await Properties().updateOne(
+    // Increment views (async, don't wait for it)
+    Properties().updateOne(
       { _id: property._id },
       { $inc: { views: 1 } }
-    );
+    ).catch(err => console.error('Error incrementing views:', err));
 
     return ApiResponse.success(res, 'Property found', { property });
   } catch (error) {
@@ -203,7 +228,32 @@ const getPropertyBySlug = async (req, res, next) => {
 const getPropertyById = async (req, res, next) => {
   try {
     const propertyId = new ObjectId(req.params.id);
-    const property = await Properties().findOne({ _id: propertyId });
+    
+    // Use aggregation to find property and populate agent
+    const results = await Properties().aggregate([
+      { $match: { _id: propertyId } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'agent',
+          foreignField: '_id',
+          as: 'agentDetails'
+        }
+      },
+      {
+        $addFields: {
+          agent: { $arrayElemAt: ['$agentDetails', 0] }
+        }
+      },
+      {
+        $project: {
+          agentDetails: 0,
+          'agent.password': 0
+        }
+      }
+    ]).toArray();
+
+    const property = results[0];
 
     if (!property) {
       return ApiResponse.error(res, 'Property not found', 404);

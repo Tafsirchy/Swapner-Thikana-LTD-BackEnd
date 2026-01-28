@@ -117,13 +117,17 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     // 1. Find user
-    const user = await Users().findOne({ email: email.toLowerCase() });
+    console.log(`Login attempt for: ${email}`);
+    const user = await Users().findOne({ email: email.toLowerCase().trim() });
     if (!user) {
+      console.log('User not found in DB');
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
 
     // 2. Check password
+    console.log(`Checking password for ${email}. Salted hash in DB starts with: ${user.password.substring(0, 10)}...`);
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log(`Password match for ${email}: ${isMatch}`);
     if (!isMatch) {
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
@@ -200,7 +204,10 @@ const forgotPassword = async (req, res, next) => {
       return ApiResponse.error(res, 'Email could not be sent', 500);
     }
 
-    return ApiResponse.success(res, 'Reset link sent to email');
+    return ApiResponse.success(res, 'Reset link sent to email', {
+      // Include link in response for easier development/testing
+      dev_reset_link: process.env.NODE_ENV === 'development' ? resetUrl : null
+    });
   } catch (error) {
     next(error);
   }

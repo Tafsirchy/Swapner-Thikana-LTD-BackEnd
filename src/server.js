@@ -18,6 +18,7 @@ const startServer = async () => {
       console.log(`\n🚀 Server is running in ${process.env.NODE_ENV || 'development'} mode`);
       console.log(`📡 Server URL: http://localhost:${PORT}`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`📧 Email Service: ${process.env.EMAIL_USER ? 'Configured (' + process.env.EMAIL_USER + ' on port ' + process.env.EMAIL_PORT + ')' : 'NOT CONFIGURED (Using dev log)'}`);
       console.log(`\n⏰ Started at: ${new Date().toLocaleString()}\n`);
 
       // Initialize Cron Jobs for Alerts
