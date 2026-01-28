@@ -233,19 +233,70 @@ const seedMockData = async () => {
     console.log(`Inserted 50 properties`);
 
     // 4. Blogs
-    const BLOG_TOPICS = ['Real Estate Investment', 'Interior Design Trends', 'Home Buying Guide', 'Market Analysis Dhaka', 'Luxury Living Secrets', 'Smart Home Technology', 'Sustainable Architecture', 'Moving Tips', 'Property Tax Guide'];
+    const BLOG_SAMPLES = [
+        {
+            title: '10 Essential Tips for First-Time Home Buyers in Dhaka',
+            excerpt: 'Navigating the real estate market in Dhaka can be daunting. From verifying land titles to understanding the RAJUK guidelines, here are 10 tips to help you make a safe investment.',
+            category: 'Tips',
+            imageId: '1560518883-ce09059eeffa'
+        },
+        {
+            title: 'Why Gulshan Remains the Most Coveted Address in Bangladesh',
+            excerpt: 'Gulshan isn\'t just a neighborhood; it\'s a lifestyle. Explore why this area continues to lead in luxury real estate value and what makes it the preferred choice for elite living.',
+            category: 'Lifestyle',
+            imageId: '1582408921715-18e7806365c1'
+        },
+        {
+            title: 'The Rise of Smart Homes: Future-Proofing Your Property',
+            excerpt: 'Discover how smart home technology is revolutionizing luxury living in Bangladesh. From automated security to energy-efficient systems, see what\'s trending in 2026.',
+            category: 'Design',
+            imageId: '1558002274-a0c585547614'
+        },
+        {
+            title: 'Investment Strategies: Residential vs. Commercial Property',
+            excerpt: 'Which investment offers better returns in the current market? We break down the pros and cons of residential and commercial real estate in Chittagong and Dhaka.',
+            category: 'Investment',
+            imageId: '1460925895917-afdab827c52f'
+        },
+        {
+            title: 'Interior Design Tips for Maximizing Small Apartment Spaces',
+            excerpt: 'Living in a studio or a 2-bedroom flat? Learn professional design hacks to make your space feel larger, brighter, and more sophisticated without a major renovation.',
+            category: 'Design',
+            imageId: '1513584684033-524be3fb4ed9'
+        },
+        {
+            title: 'Understanding Property Taxes and VAT in Bangladesh',
+            excerpt: 'Stay compliant and avoid surprises. Our comprehensive guide explains the latest updates to property taxes, registration fees, and VAT for real estate transactions.',
+            category: 'News',
+            imageId: '1450109784172-e12122b7a0c0'
+        },
+        {
+            title: 'How to Choose the Right Real Estate Agency for Your Sale',
+            excerpt: 'Not all agencies are created equal. Discover the key qualities to look for in a real estate partner to ensure a fast, transparent, and profitable sale.',
+            category: 'Tips',
+            imageId: '1454165205770-a896c1766171'
+        },
+        {
+            title: 'The Impact of Metro Rail on Property Value in Dhaka',
+            excerpt: 'Infrastructure drives value. We analyze how the completion of the Metro Rail has transformed connectivity and boosted property prices in residential hubs like Mirpur.',
+            category: 'News',
+            imageId: '1470770841072-f978cf4d019e'
+        }
+    ];
+
     const blogs = [];
-    for (let i = 0; i < 50; i++) {
-        const title = `${getRandom(BLOG_TOPICS)}: Part ${i + 1}`;
+    for (let i = 0; i < 24; i++) {
+        const sample = BLOG_SAMPLES[i % BLOG_SAMPLES.length];
+        const title = i >= BLOG_SAMPLES.length ? `${sample.title} (Part 2)` : sample.title;
         const img = getUniqueImg(BLOG_IMAGE_IDS, i, 'blog', 600);
         blogs.push({
             title: title,
             slug: slugify(title) + '-' + i,
-            content: `This comprehensive article explores ${title} in depth. `.repeat(30) + ` Unique Insight #${i + 1}.`,
-            excerpt: `Learn everything you need to know about ${title.toLowerCase()} in our latest expert analysis.`,
+            content: `${sample.excerpt} This comprehensive article explores the latest trends and essential insights for our readers. `.repeat(15),
+            excerpt: sample.excerpt,
             author: getRandom(adminIds),
-            category: getRandom(CATEGORIES),
-            tags: [getRandom(TAGS), getRandom(TAGS), 'Expert Advice'],
+            category: sample.category,
+            tags: [sample.category, getRandom(TAGS), 'Expert Advice'],
             thumbnail: img,
             views: getRandomInt(100, 5000),
             isPublished: true,
@@ -255,7 +306,7 @@ const seedMockData = async () => {
         });
     }
     await collections.blogs.insertMany(blogs);
-    console.log(`Inserted 50 blogs`);
+    console.log(`Inserted 24 diversified blogs`);
 
     // 5. Leads
     const leads = [];
