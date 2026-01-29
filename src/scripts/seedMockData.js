@@ -66,22 +66,23 @@ const seedMockData = async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('password123', salt);
 
-    // Enhanced Image Pools with 50+ unique IDs where possible or dynamic sigs
+    // Curated Architecture & Real Estate Image IDs (Verified & Fresh)
     const PROJECT_IMAGE_IDS = [
-        '1486406146926-c627a92ad1ab', '1497366216548-37526070297c', '1464146072230-91cabc70e272', '1523217582562-09d0def993a6',
-        '1582408921715-18e7806365c1', '1480714378408-67cf0d13bc1b', '1449844908441-8829872d2607', '1513584684033-524be3fb4ed9',
-        '1470770841072-f978cf4d019e', '1501183638710-841dd1904471', '1472851294608-062f824d288b', '1518780664697-55e3ad937233'
+        '1600585154340-be6161a56a0c', '1600596542815-ffad4c1539a9', '1613545325278-f24b0cae1224', 
+        '1600566753086-00f18fb6b3ea', '1600585154526-990dced4db0d', '1600607687644-c7171b42498f', 
+        '1600566753190-17f0baa2a6c3', '1600585152209-648318547f66', '1613977257363-707ba9348227', 
+        '1600566753376-12c8ab7802b7', '1600585154363-67eb9e2bab87', '1600566752355-35792bedfe56'
     ]; 
 
     const PROPERTY_IMAGE_IDS = [
-        '1600585154340-be6161a56a0c', '1600596542815-ffad4c1539a9', '1600607687920-4e2a09cf159d', '1570129477492-45c003edd2be',
-        '1568605114967-8130f3a36994', '1449156001437-3420af640773', '1430285561322-7808604715df', '1502672260266-1c1ef2d93688',
-        '1512917315910-44dee2313934', '1560518883-ce09059eeffa', '1512915920339-38374b6a938c', '1580537659466-0a9bfa74695c'
+        '1600585154340-be6161a56a0c', '1600596542815-ffad4c1539a9', '1613545325278-f24b0cae1224', 
+        '1600566753086-00f18fb6b3ea', '1600585154526-990dced4db0d', '1600607687644-c7171b42498f', 
+        '1600566753190-17f0baa2a6c3', '1600585152209-648318547f66', '1613977257363-707ba9348227', 
+        '1600566753376-12c8ab7802b7', '1600585154363-67eb9e2bab87', '1600566752355-35792bedfe56'
     ];
 
     const getUniqueImg = (pool, index, type, size = 1200) => {
         const id = pool[index % pool.length];
-        // Ensure image IDs are valid and use a consistent structure
         const baseUrl = 'https://images.unsplash.com/photo-';
         return `${baseUrl}${id}?q=80&w=${size}&auto=format&fit=crop`;
     };
@@ -92,9 +93,10 @@ const seedMockData = async () => {
     const PROJECT_SUFFIXES = ['Towers', 'Gardens', 'Haven', 'Palace', 'Heights', 'Villas', 'Residency', 'Manor', 'Plaza', 'Point', 'View', 'Park', 'Square', 'Crest', 'Terrace', 'Enclave'];
 
     const BLOG_IMAGE_IDS = [
-        '1512149177587-034567298bf2', '1527359393033-99a1f463c3b5', '1501183000213-4c0704040974', '1513584684033-524be3fb4ed9',
-        '1499750310117-099d82c10b27', '1454165205770-a896c1766171', '1434031215919-a974b62b013a', '1488190211105-8b0e65b80b4e',
-        '1497215728101-856f4ea42174', '1516321318423-f06f85e504b3', '1519389950473-47ba0277781c', '1460925895917-afdab827c52f'
+        '1600585154340-be6161a56a0c', '1600596542815-ffad4c1539a9', '1613545325278-f24b0cae1224', 
+        '1600566753086-00f18fb6b3ea', '1600585154526-990dced4db0d', '1600607687644-c7171b42498f', 
+        '1600566753190-17f0baa2a6c3', '1600585152209-648318547f66', '1613977257363-707ba9348227', 
+        '1600566753376-12c8ab7802b7', '1600585154363-67eb9e2bab87', '1600566752355-35792bedfe56'
     ];
 
     console.log('Starting seed process...');
@@ -114,10 +116,10 @@ const seedMockData = async () => {
         updatedAt: new Date()
     });
 
-    for (let i = 0; i < 49; i++) {
+    for (let i = 0; i < 14; i++) { // 1 admin + 14 others = 15 total
         let role;
-        if (i < 9) role = 'admin';
-        else if (i < 19) role = 'agent';
+        if (i < 3) role = 'admin';
+        else if (i < 9) role = 'agent';
         else role = 'user';
 
         const firstName = getRandom(NAMES);
@@ -143,14 +145,14 @@ const seedMockData = async () => {
     }
     const userResult = await collections.users.insertMany(users);
     const userIds = Object.values(userResult.insertedIds);
-    const adminIds = userIds.slice(0, 10);
-    const agentIds = userIds.slice(10, 20);
-    const regularUserIds = userIds.slice(20, 50);
-    console.log(`Inserted 50 users`);
+    const adminIds = userIds.slice(0, 4);
+    const agentIds = userIds.slice(4, 10);
+    const regularUserIds = userIds.slice(10, 15);
+    console.log(`Inserted 15 users`);
 
     // 2. Projects
     const projects = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 15; i++) {
         const title = `${getRandom(PROJECT_PREFIXES)} ${getRandom(PROJECT_SUFFIXES)} ${i + 1}`;
         const city = getRandom(CITIES);
         const img = getUniqueImg(PROJECT_IMAGE_IDS, i, 'project');
@@ -165,7 +167,7 @@ const seedMockData = async () => {
             type: getRandom(PROJECT_TYPES),
             status: getRandom(PROJECT_STATUSES),
             features: [getRandom(TAGS), getRandom(TAGS), 'Infinity Pool', 'Gymnasium', '24/7 Concierge', 'Smart Home'],
-            images: [img, getUniqueImg(PROJECT_IMAGE_IDS, i + 50, 'project-alt')],
+            images: [img, getUniqueImg(PROJECT_IMAGE_IDS, i + 1, 'project-alt')],
             thumbnail: getUniqueImg(PROJECT_IMAGE_IDS, i, 'project-thumb', 400),
             completionDate: new Date(2026 + getRandomInt(0, 3), getRandomInt(0, 11), getRandomInt(1, 28)).toISOString().split('T')[0],
             createdAt: new Date(),
@@ -174,22 +176,22 @@ const seedMockData = async () => {
     }
     const projectResult = await collections.projects.insertMany(projects);
     const projectIds = Object.values(projectResult.insertedIds);
-    console.log(`Inserted 50 projects`);
+    console.log(`Pushed to projects array: ${projects.length}`);
+    console.log(`Inserted to DB: ${projectIds.length} projects`);
+
 
     // 3. Properties
     const properties = [];
     const PROP_ADJECTIVES = ['Spacious', 'Cozy', 'Elegant', 'Bright', 'Charming', 'Sophisticated', 'Lavish', 'Minimalist', 'Scenic', 'Grand'];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 15; i++) {
         const pType = getRandom(PROPERTY_TYPES);
         const title = `${getRandom(PROP_ADJECTIVES)} ${pType.charAt(0).toUpperCase() + pType.slice(1)} ${i + 1}`;
         const city = getRandom(CITIES);
         const img = getUniqueImg(PROPERTY_IMAGE_IDS, i, 'property');
         
-        // Randomize status for dashboard testing
+        // All published for pagination testing as per user request
         let status = 'published';
-        if (i < 15) status = 'pending';
-        else if (i < 20) status = 'rejected';
-        else if (i > 45) status = 'sold';
+
 
         // Base coordinates for Dhaka
         const latBase = 23.7104 + (Math.random() - 0.5) * 0.1;
@@ -214,25 +216,127 @@ const seedMockData = async () => {
             },
             bedrooms: getRandomInt(1, 6),
             bathrooms: getRandomInt(1, 5),
-            size: getRandomInt(800, 5000), // Added explicit size field
-            yearBuilt: getRandomInt(2010, 2024), // Added yearBuilt
+            size: getRandomInt(800, 5000), 
+            yearBuilt: getRandomInt(2010, 2024),
             amenities: [getRandom(TAGS), 'Balcony', 'Gas Supply', 'Generator', 'Parking', 'Fire Safety'],
-            images: [img, getUniqueImg(PROPERTY_IMAGE_IDS, i + 50, 'prop-alt')],
+            images: [img, getUniqueImg(PROPERTY_IMAGE_IDS, i + 1, 'prop-alt')],
             thumbnail: getUniqueImg(PROPERTY_IMAGE_IDS, i, 'prop-thumb', 400),
             agent: new ObjectId(getRandom(agentIds)),
             status: status,
             isVerified: i % 4 !== 0,
             views: getRandomInt(10, 2000),
-            featured: i % 10 === 0,
+            featured: i % 3 === 0,
             createdAt: new Date(),
             updatedAt: new Date()
         });
     }
     const propertyResult = await collections.properties.insertMany(properties);
     const propertyIds = Object.values(propertyResult.insertedIds);
-    console.log(`Inserted 50 properties`);
+    console.log(`Inserted 15 properties`);
 
-    // 4. Blogs
+    // 4. Magazines
+    const MAGAZINE_COVERS = [
+        '1541963463532-d68292c34b19', '1524995943678-bd4fe3b94d00', '1540206395-688085723adb', 
+        '1600607687939-ce8a6c25118c', '1491955470617-fe379d844569', '1491308056681-7104e762925a'
+    ];
+    
+    const magazines = [];
+    for (let i = 0; i < 6; i++) {
+        const title = `Luxe Living Vol. ${i + 1}`;
+        magazines.push({
+            title: title,
+            slug: slugify(title),
+            coverImage: getUniqueImg(MAGAZINE_COVERS, i, 'magazine', 800),
+            pdfUrl: 'https://example.com/magazine.pdf',
+            publicationDate: new Date(new Date().setMonth(new Date().getMonth() - i)),
+            description: 'Exclusive interviews with top architects and a look into the future of urban living.',
+            publisher: 'STLTD Media',
+            isPublished: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+    }
+    await db.collection('magazines').deleteMany({});
+    await db.collection('magazines').insertMany(magazines);
+    console.log(`Inserted 6 magazines`);
+
+    // 5. Agencies
+    const AGENCY_LOGOS = [
+         '1560179707-f14e90ef3623', '1599305445671-ac291c95dd9f', '1556740758-90de6902f798'
+    ];
+    
+    const agencies = [];
+    const AGENCY_NAMES = ['Elite Spaces', 'Urban Architects', 'Global Estates'];
+    for (let i = 0; i < 3; i++) {
+        agencies.push({
+            name: AGENCY_NAMES[i],
+            slug: slugify(AGENCY_NAMES[i]),
+            logo: getUniqueImg(AGENCY_LOGOS, i, 'agency', 400),
+            description: 'Premier partner in luxury real estate development and sales.',
+            contactInfo: {
+                phone: '+8801700000000',
+                email: `contact@${slugify(AGENCY_NAMES[i])}.com`,
+                address: 'Gulshan 2, Dhaka'
+            },
+            website: `https://${slugify(AGENCY_NAMES[i])}.com`,
+            foundedYear: 2010 + i,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+    }
+    await db.collection('agencies').deleteMany({});
+    await db.collection('agencies').insertMany(agencies);
+    console.log(`Inserted 3 agencies`);
+
+    // Management Team (Update Users)
+    const managementUsers = [
+        {
+            name: 'Tafsir Ahmed',
+            email: 'ceo@stltd.com',
+            role: 'management',
+            designation: 'Chief Executive Officer',
+            bio: 'Visionary leader with 15 years in luxury real estate formulation.',
+            avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400',
+            password: hashedPassword
+        },
+        {
+            name: 'Sarah Khan',
+            email: 'coo@stltd.com',
+            role: 'management',
+            designation: 'Chief Operations Officer',
+            bio: 'Operational excellence expert ensuring seamless project delivery.',
+            avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400',
+            password: hashedPassword
+        },
+        {
+            name: 'James Wilson',
+            email: 'cfo@stltd.com',
+            role: 'management',
+            designation: 'Chief Financial Officer',
+            bio: 'Strategic financial planning for sustainable growth.',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400',
+            password: hashedPassword
+        }
+    ];
+
+    for (const user of managementUsers) {
+        // Upsert management users
+        await db.collection('users').updateOne(
+            { email: user.email },
+            { 
+               $set: { 
+                   ...user, 
+                   status: 'active', 
+                   createdAt: new Date(), 
+                   updatedAt: new Date() 
+               } 
+            },
+            { upsert: true }
+        );
+    }
+    console.log('Inserted/Updated 3 management profiles');
+
+    // 4. Blogs (Renumbered from original file, but keeping sequential logic here)
     const BLOG_SAMPLES = [
         {
             title: '10 Essential Tips for First-Time Home Buyers in Dhaka',
@@ -285,7 +389,7 @@ const seedMockData = async () => {
     ];
 
     const blogs = [];
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 15; i++) {
         const sample = BLOG_SAMPLES[i % BLOG_SAMPLES.length];
         const title = i >= BLOG_SAMPLES.length ? `${sample.title} (Part 2)` : sample.title;
         const img = getUniqueImg(BLOG_IMAGE_IDS, i, 'blog', 600);
@@ -306,11 +410,11 @@ const seedMockData = async () => {
         });
     }
     await collections.blogs.insertMany(blogs);
-    console.log(`Inserted 24 diversified blogs`);
+    console.log(`Inserted 15 diversified blogs`);
 
     // 5. Leads
     const leads = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 15; i++) {
         const leadUser = `${getRandom(NAMES)} ${getRandom(SURNAMES)}`;
         leads.push({
             name: leadUser,
@@ -327,11 +431,11 @@ const seedMockData = async () => {
         });
     }
     await collections.leads.insertMany(leads);
-    console.log(`Inserted 50 leads`);
+    console.log(`Inserted 15 leads`);
 
     // 6. Notifications
-    const notifications = []; // Corrected variable name from '通知'
-    for (let i = 0; i < 50; i++) {
+    const notifications = []; 
+    for (let i = 0; i < 15; i++) {
         notifications.push({
             user: new ObjectId(getRandom(userIds)),
             type: getRandom(['Alert', 'Message', 'System', 'Security']),
@@ -345,11 +449,11 @@ const seedMockData = async () => {
         });
     }
     await collections.notifications.insertMany(notifications);
-    console.log(`Inserted 50 notifications`);
+    console.log(`Inserted 15 notifications`);
 
     // 7. Saved Searches
     const savedSearches = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 15; i++) {
         const city = getRandom(CITIES);
         const area = getRandom(AREAS[city]);
         savedSearches.push({
@@ -370,7 +474,7 @@ const seedMockData = async () => {
         });
     }
     await collections.savedSearches.insertMany(savedSearches);
-    console.log(`Inserted 50 saved-searches`);
+    console.log(`Inserted 15 saved-searches`);
 
     // 8. Reviews
     const reviews = [];
@@ -386,10 +490,13 @@ const seedMockData = async () => {
         "Expert guidance from the agent throughout the process."
     ];
 
-    for (let i = 0; i < 50; i++) {
-        const reviewer = users[getRandomInt(20, 49)]; // Pick a regular user
-        const property = i % 2 === 0 ? propertyIds[getRandomInt(0, 49)] : null;
-        const agent = i % 2 !== 0 ? agentIds[getRandomInt(0, 9)] : null;
+    for (let i = 0; i < 15; i++) {
+        // Safe check for reviewer index
+        const reviewerIndex = getRandomInt(10, 14); // Regular users are 10-14
+        const reviewer = users[reviewerIndex] || users[users.length - 1]; 
+        
+        const property = i % 2 === 0 ? propertyIds[getRandomInt(0, 14)] : null;
+        const agent = i % 2 !== 0 ? agentIds[getRandomInt(0, 5)] : null;
         
         reviews.push({
             userId: reviewer._id || new ObjectId(regularUserIds[getRandomInt(0, regularUserIds.length-1)]),
@@ -400,12 +507,12 @@ const seedMockData = async () => {
             rating: getRandomInt(3, 5),
             comment: getRandom(REVIEW_COMMENTS),
             status: getRandom(['published', 'pending', 'rejected']),
-            createdAt: new Date(Date.now() - getRandomInt(0, 7776000000)), // up to 90 days ago
+            createdAt: new Date(Date.now() - getRandomInt(0, 7776000000)), 
             updatedAt: new Date()
         });
     }
     await collections.reviews.insertMany(reviews);
-    console.log(`Inserted 50 reviews`);
+    console.log(`Inserted 15 reviews`);
 
     console.log('--- SEEDING COMPLETED SUCCESSFULLY ---');
   } catch (error) {

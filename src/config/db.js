@@ -33,6 +33,8 @@ const connectDB = async () => {
     const { createIndexes: createBlogIndexes } = require('../models/Blog');
     const { createIndexes: createNotificationIndexes } = require('../models/Notification');
     const { createIndexes: createSavedSearchIndexes } = require('../models/SavedSearch');
+    const { createIndexes: createAgentIndexes } = require('../models/Agent');
+    const { createIndexes: createManagementIndexes } = require('../models/Management');
 
     await Promise.all([
       createUserIndexes(db),
@@ -42,6 +44,8 @@ const connectDB = async () => {
       createBlogIndexes(db),
       createNotificationIndexes(db),
       createSavedSearchIndexes(db),
+      createAgentIndexes(db),
+      createManagementIndexes(db),
     ]);
 
     console.log(`✅ MongoDB Connected and indexes initialized: ${dbName}`);

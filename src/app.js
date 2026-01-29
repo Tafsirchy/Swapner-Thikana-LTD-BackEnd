@@ -70,6 +70,10 @@ app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/analytics', require('./routes/analytics.routes'));
 app.use('/api/reminders', require('./routes/reminder.routes'));
 app.use('/api/wishlists', require('./routes/wishlist.routes'));
+app.use('/api/magazines', require('./routes/magazine.routes'));
+app.use('/api/agencies', require('./routes/agency.routes'));
+app.use('/api/management', require('./routes/management.routes'));
+app.use('/api/agents', require('./routes/agent.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {

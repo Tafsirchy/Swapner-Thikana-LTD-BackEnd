@@ -176,6 +176,7 @@ const getMyProperties = async (req, res, next) => {
  * @access  Public
  */
 const getPropertyBySlug = async (req, res, next) => {
+  try {
     // Build match query: match by slug OR by ID (if slug is a valid ObjectId)
     const matchQuery = { $or: [{ slug: req.params.slug }] };
     

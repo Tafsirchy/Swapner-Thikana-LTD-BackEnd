@@ -85,7 +85,13 @@ const getProjects = async (req, res, next) => {
  */
 const getProjectBySlug = async (req, res, next) => {
   try {
-    const project = await Projects().findOne({ slug: req.params.slug });
+    const matchQuery = { $or: [{ slug: req.params.slug }] };
+    
+    if (ObjectId.isValid(req.params.slug)) {
+      matchQuery.$or.push({ _id: new ObjectId(req.params.slug) });
+    }
+
+    const project = await Projects().findOne(matchQuery);
 
     if (!project) {
       return ApiResponse.error(res, 'Project not found', 404);

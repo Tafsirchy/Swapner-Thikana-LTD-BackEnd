@@ -9,8 +9,51 @@ const { ObjectId } = require('mongodb');
  */
 const getUsers = async (req, res, next) => {
   try {
-    const users = await Users().find({}, { projection: { password: 0 } }).toArray();
-    return ApiResponse.success(res, 'Users fetched', { users });
+    const { 
+      page = 1, 
+      limit = 10, 
+      search,
+      role,
+      status 
+    } = req.query;
+
+    const query = {};
+    if (role) query.role = role;
+    if (status) query.status = status;
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // For specific role queries (like management), exclude sensitive data but keep bio/designation
+    const projection = { password: 0 };
+    if (role === 'management') {
+         // ensure management profile fields are returned
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    
+    const users = await Users()
+        .find(query, { projection })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .toArray();
+        
+    const total = await Users().countDocuments(query);
+    
+    return ApiResponse.success(res, 'Users fetched', { 
+        users,
+        pagination: {
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            pages: Math.ceil(total / Number(limit))
+        }
+    });
   } catch (error) {
     next(error);
   }
