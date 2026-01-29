@@ -86,8 +86,14 @@ const getBlogs = async (req, res, next) => {
  */
 const getBlogBySlug = async (req, res, next) => {
   try {
+    const matchQuery = { $or: [{ slug: req.params.slug }] };
+    
+    if (ObjectId.isValid(req.params.slug)) {
+      matchQuery.$or.push({ _id: new ObjectId(req.params.slug) });
+    }
+
     const blogs = await Blogs().aggregate([
-      { $match: { slug: req.params.slug } },
+      { $match: matchQuery },
       {
         $lookup: {
           from: 'users',
