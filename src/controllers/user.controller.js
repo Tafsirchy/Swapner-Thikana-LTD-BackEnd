@@ -82,9 +82,9 @@ const getAgents = async (req, res, next) => {
  * @route   PUT /api/users/profile
  * @access  Private
  */
-const updateProfile = async (req, res, next) => {
+  const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone, avatar, bio, specialization, experience } = req.body;
+    const { name, phone, bio, specialization, experience } = req.body;
     
     const updateData = {
       updatedAt: new Date()
@@ -92,7 +92,12 @@ const updateProfile = async (req, res, next) => {
 
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
-    if (avatar) updateData.avatar = avatar;
+    
+    // Handle file upload
+    if (req.file) {
+      updateData.image = req.file.path; // Save Cloudinary URL to 'image' field (legacy naming) or 'avatar'
+      updateData.avatar = req.file.path; // Save to 'avatar' as well to standardize
+    }
 
     // Agent specific fields
     if (req.user.role === 'agent') {
@@ -305,6 +310,32 @@ const getRecentlyViewed = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Delete profile image
+ * @route   DELETE /api/users/profile/image
+ * @access  Private
+ */
+const deleteProfileImage = async (req, res, next) => {
+  try {
+    await Users().updateOne(
+      { _id: new ObjectId(req.user._id) },
+      { 
+        $unset: { image: "", avatar: "" },
+        $set: { updatedAt: new Date() }
+      }
+    );
+
+    const updatedUser = await Users().findOne(
+      { _id: new ObjectId(req.user._id) },
+      { projection: { password: 0 } }
+    );
+
+    return ApiResponse.success(res, 'Profile image deleted', { user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getAgents,
@@ -314,5 +345,6 @@ module.exports = {
   addToWishlist,
   removeFromWishlist,
   addRecentlyViewed,
-  getRecentlyViewed
+  getRecentlyViewed,
+  deleteProfileImage
 };

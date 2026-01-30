@@ -44,10 +44,11 @@ router.put('/:id', protect, authorize('agent', 'admin'), updatePropertyValidator
 router.delete('/:id', protect, authorize('agent', 'admin'), propertyController.deleteProperty);
 
 const upload = require('../middlewares/upload.middleware');
+const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 
 // @route   POST /api/properties/:id/images
 // @desc    Upload property images
 // @access  Private/Agent/Admin
-router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 10), propertyController.uploadPropertyImages);
+router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 10), imgbbUpload, propertyController.uploadPropertyImages);
 
 module.exports = router;

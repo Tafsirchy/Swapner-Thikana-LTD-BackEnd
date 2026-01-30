@@ -59,7 +59,7 @@ const sendEmail = async ({ to, subject, template, data }) => {
     const html = await loadTemplate(template, data);
     
     const mailOptions = {
-      from: `"STLTD Properties" <${process.env.EMAIL_USER || 'noreply@stltd.com'}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'Shwapner Thikana LTD'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@stltd.com'}>`,
       to,
       subject,
       html

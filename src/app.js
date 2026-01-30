@@ -74,6 +74,7 @@ app.use('/api/magazines', require('./routes/magazine.routes'));
 app.use('/api/agencies', require('./routes/agency.routes'));
 app.use('/api/management', require('./routes/management.routes'));
 app.use('/api/agents', require('./routes/agent.routes'));
+app.use('/api/upload', require('./routes/upload.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {

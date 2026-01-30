@@ -10,6 +10,8 @@ const { authorize } = require('../middlewares/role.middleware');
 // @access  Private/Admin
 const { validate } = require('../middlewares/validation.middleware');
 const { updateProfileValidator } = require('../validators/user.validator');
+const upload = require('../middlewares/upload.middleware');
+const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 
 // @route   GET /api/users
 // @desc    Get all users (Admin only)
@@ -19,7 +21,12 @@ router.get('/', protect, authorize('admin'), userController.getUsers);
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', protect, updateProfileValidator, validate, userController.updateProfile);
+router.put('/profile', protect, upload.single('avatar'), imgbbUpload, updateProfileValidator, validate, userController.updateProfile);
+
+// @route   DELETE /api/users/profile/image
+// @desc    Delete profile image
+// @access  Private
+router.delete('/profile/image', protect, userController.deleteProfileImage);
 
 // @route   GET /api/users/saved-properties
 // @desc    Get saved properties

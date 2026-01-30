@@ -9,7 +9,8 @@ const {
   registerValidator, 
   loginValidator, 
   emailValidator, 
-  passwordValidator 
+  passwordValidator,
+  changePasswordValidator
 } = require('../validators/auth.validator');
 
 // @route   POST /api/auth/register
@@ -41,5 +42,10 @@ router.post('/reset-password', passwordValidator, validate, authController.reset
 // @desc    Get current user profile
 // @access  Private
 router.get('/me', protect, authController.getMe);
+
+// @route   POST /api/auth/change-password
+// @desc    Change password
+// @access  Private
+router.post('/change-password', protect, changePasswordValidator, validate, authController.changePassword);
 
 module.exports = router;

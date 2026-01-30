@@ -271,6 +271,44 @@ const getMe = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Change password
+ * @route   POST /api/auth/change-password
+ * @access  Private
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    // 1. Get user with password
+    const user = await Users().findOne({ _id: userId });
+    if (!user) {
+      return ApiResponse.error(res, 'User not found', 404);
+    }
+
+    // 2. Check current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return ApiResponse.error(res, 'Invalid current password', 400);
+    }
+
+    // 3. Hash new password
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // 4. Update password
+    await Users().updateOne(
+      { _id: userId },
+      { $set: { password: hashedPassword, updatedAt: new Date() } }
+    );
+
+    return ApiResponse.success(res, 'Password changed successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -278,4 +316,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getMe,
+  changePassword,
 };
