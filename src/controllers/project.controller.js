@@ -34,6 +34,11 @@ const { getSortObject } = require('../utils/queryHelpers');
  * @route   GET /api/projects
  * @access  Public
  */
+/**
+ * @desc    Get all projects
+ * @route   GET /api/projects
+ * @access  Public
+ */
 const getProjects = async (req, res, next) => {
   try {
     const { 
@@ -41,14 +46,35 @@ const getProjects = async (req, res, next) => {
       limit = 10, 
       status,
       city,
+      area,
+      road,
+      minSize,
+      maxSize,
+      minPrice,
+      maxPrice,
+      beds,
+      baths,
+      minFloors,
+      facing,
+      handoverTime,
+      amenities,
+      availableOnly,
+      parking,
       search,
       sort
     } = req.query;
 
     const query = {};
+
+    // 1. Basic Filters
     if (status && status !== 'all') query.status = status;
-    if (city) query['location.city'] = { $regex: city, $options: 'i' };
     
+    // 2. Location Filters (Regex for flexibility)
+    if (city) query['location.city'] = { $regex: city, $options: 'i' };
+    if (area) query['location.address'] = { $regex: area, $options: 'i' }; // Approximate area search in address
+    if (road) query['location.address'] = { $regex: `Road.*${road}`, $options: 'i' }; // Approximate road search
+
+    // 3. Search (Name/Description)
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -56,8 +82,96 @@ const getProjects = async (req, res, next) => {
       ];
     }
 
-    const sortObj = getSortObject(sort);
+    // 4. Numeric Range Filters
+    const safeNum = (val) => {
+      const n = Number(val);
+      return isNaN(n) ? null : n;
+    };
 
+    if (minSize || maxSize) {
+      const minS = safeNum(minSize);
+      const maxS = safeNum(maxSize);
+      
+      const sizeConditions = [];
+      
+      // Condition 1: Check cached numeric field if it exists
+      const numericRange = {};
+      if (minS !== null) numericRange.$gte = minS;
+      if (maxS !== null) numericRange.$lte = maxS;
+      
+      if (Object.keys(numericRange).length > 0) {
+         sizeConditions.push({ flatSizeNum: numericRange });
+         
+         // Fallback: Check existing string fields (minFlatSize/maxFlatSize) if they hold numbers or convertible strings
+         // MongoDB $gte/$lte compares numbers correctly if fields are numeric types.
+         if (minS !== null) sizeConditions.push({ minFlatSize: { $gte: minS } });
+         if (maxS !== null) sizeConditions.push({ maxFlatSize: { $lte: maxS } });
+         
+         query.$or = sizeConditions;
+      }
+    }
+
+    if (minPrice || maxPrice) {
+      const priceQuery = {};
+      const minP = safeNum(minPrice);
+      const maxP = safeNum(maxPrice);
+      
+      if (minP !== null) priceQuery.$gte = minP;
+      if (maxP !== null) priceQuery.$lte = maxP;
+      
+      if (Object.keys(priceQuery).length > 0) {
+        // Fallback search on 'price' field if 'pricePerSqFtNum' is missing? 
+        // We'll stick to one field for now but safe check ensures no NaN queries
+        query.pricePerSqFtNum = priceQuery;
+      }
+    }
+
+    const bedsNum = safeNum(beds);
+    const bathsNum = safeNum(baths);
+
+    if (bedsNum !== null) query.bedroomCountNum = { $gte: bedsNum };
+    if (bathsNum !== null) query.bathroomCountNum = { $gte: bathsNum };
+    
+    // 5. Building & Layout
+    if (minFloors) {
+       // Placeholder: require future data update
+    }
+    
+    if (facing) query.facing = { $regex: facing, $options: 'i' };
+
+    // 6. Amenities
+    if (amenities) {
+      const amenitiesList = Array.isArray(amenities) ? amenities : [amenities];
+      const validAmenities = amenitiesList.filter(a => typeof a === 'string' && a.length > 0);
+      
+      if (validAmenities.length > 0) {
+         query.$and = validAmenities.map(a => ({ 
+            amenities: { $regex: a, $options: 'i' } 
+         }));
+      }
+    }
+    
+    // 7. Availability
+    if (availableOnly === 'true') {
+        // Broad check for both string "Sold" text AND numeric 0
+        query.$or = [
+            { availableFlats: { $not: { $regex: /sold out|none|0/i }, $ne: null } },
+            // If field is numeric 0, $not regex might behave oddly, so we check > 0 if it was numeric
+            // Safest for mixed data:
+            { availableFlatsNum: { $gt: 0 } } 
+        ];
+        
+        // Clean up if we didn't add the Num field check yet (safe fallbacks)
+        // For now, simplified:
+        delete query.$or; // Logic below overrides for simple regex
+        query.availableFlats = { $not: { $regex: /sold out|none/i }, $ne: null };
+    }
+    
+    if (parking === 'true') {
+        query.parking = { $regex: /yes|available|included/i };
+    }
+
+    const sortObj = getSortObject(sort);
     const skip = (Number(page) - 1) * Number(limit);
 
     const projects = await Projects()
