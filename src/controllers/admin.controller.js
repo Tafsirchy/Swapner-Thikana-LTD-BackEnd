@@ -168,13 +168,20 @@ const deleteUser = async (req, res, next) => {
  * @route   GET /api/admin/properties
  * @access  Private/Admin
  */
+const { getSortObject } = require('../utils/queryHelpers');
+
+/**
+ * @desc    Get all properties (for admin, with agent details)
+ * @route   GET /api/admin/properties
+ * @access  Private/Admin
+ */
 const getAllProperties = async (req, res, next) => {
   try {
-    const { status, search, featured } = req.query;
+    const { status, search, featured, sort } = req.query;
     const query = {};
 
-    if (status) query.status = status;
-    if (featured) query.featured = featured === 'true';
+    if (status && status !== 'all') query.status = status;
+    if (featured && featured !== 'all') query.featured = featured === 'true';
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -182,6 +189,11 @@ const getAllProperties = async (req, res, next) => {
         { 'location.city': { $regex: search, $options: 'i' } }
       ];
     }
+
+    const sortObj = getSortObject(sort);
+
+    console.log('[DEBUG] admin.getAllProperties Query:', JSON.stringify(query, null, 2));
+    console.log('[DEBUG] admin.getAllProperties Sort:', JSON.stringify(sortObj, null, 2));
 
     const properties = await Properties()
       .aggregate([
@@ -202,11 +214,12 @@ const getAllProperties = async (req, res, next) => {
             featured: 1,
             location: 1,
             createdAt: 1,
+            views: 1,
             'agent.name': { $arrayElemAt: ['$agentDetails.name', 0] },
             'agent.email': { $arrayElemAt: ['$agentDetails.email', 0] }
           }
         },
-        { $sort: { createdAt: -1 } }
+        { $sort: sortObj }
       ])
       .toArray();
 

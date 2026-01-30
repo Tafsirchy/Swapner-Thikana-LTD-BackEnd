@@ -9,8 +9,10 @@ const ApiResponse = require('../utils/apiResponse');
  */
 const createReview = async (req, res, next) => {
   try {
-    const { propertyId, agentId, rating, comment } = req.body;
-    const userId = req.user._id;
+    const { propertyId, agentId, rating, comment, userName, userEmail } = req.body;
+    
+    // Auth is optional now
+    const userId = req.user?._id;
 
     if (!rating || rating < 1 || rating > 5) {
       return ApiResponse.error(res, 'Please provide a rating between 1 and 5', 400);
@@ -19,19 +21,28 @@ const createReview = async (req, res, next) => {
     const review = {
       propertyId: propertyId ? new ObjectId(propertyId) : null,
       agentId: agentId ? new ObjectId(agentId) : null,
-      userId: new ObjectId(userId),
-      userName: req.user.name,
-      userPhoto: req.user.photo || null,
+      userId: userId ? new ObjectId(userId) : null,
+      userName: req.user?.name || userName || 'Guest User',
+      userPhoto: req.user?.photo || null,
+      userEmail: req.user?.email || userEmail || null,
       rating: parseInt(rating),
       comment: comment || '',
-      status: 'pending',
+      status: 'published', // Auto-publish for instant visibility
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     const result = await Reviews().insertOne(review);
     
-    return ApiResponse.success(res, 'Review submitted for moderation', {
+    // Immediately update ratings for the property or agent
+    if (review.propertyId) {
+      await updatePropertyAverageRating(review.propertyId);
+    }
+    if (review.agentId) {
+      await updateAgentAverageRating(review.agentId);
+    }
+
+    return ApiResponse.success(res, 'Review published successfully', {
       reviewId: result.insertedId
     }, 201);
   } catch (error) {
@@ -173,6 +184,46 @@ const updateAgentAverageRating = async (agentId) => {
 };
 
 /**
+ * Update a review (Owner only)
+ */
+const updateReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const reviewId = new ObjectId(id);
+
+    const review = await Reviews().findOne({ _id: reviewId });
+    if (!review) return ApiResponse.error(res, 'Review not found', 404);
+
+    // Only the user who wrote it can edit
+    if (!req.user || !review.userId || review.userId.toString() !== req.user._id.toString()) {
+      return ApiResponse.error(res, 'Unauthorized to edit this review', 401);
+    }
+
+    const updates = {
+      updatedAt: new Date()
+    };
+    if (rating) updates.rating = parseInt(rating);
+    if (comment) updates.comment = comment;
+
+    await Reviews().updateOne(
+      { _id: reviewId },
+      { $set: updates }
+    );
+
+    // Recalculate ratings if rating changed
+    if (rating) {
+      if (review.propertyId) await updatePropertyAverageRating(review.propertyId);
+      if (review.agentId) await updateAgentAverageRating(review.agentId);
+    }
+
+    return ApiResponse.success(res, 'Review updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Delete a review (Admin or Owner)
  */
 const deleteReview = async (req, res, next) => {
@@ -184,7 +235,10 @@ const deleteReview = async (req, res, next) => {
     if (!review) return ApiResponse.error(res, 'Review not found', 404);
 
     // Only Admin or the user who wrote it can delete
-    if (req.user.role !== 'admin' && review.userId.toString() !== req.user._id.toString()) {
+    const isOwner = req.user && review.userId && review.userId.toString() === req.user._id.toString();
+    const isAdmin = req.user && req.user.role === 'admin';
+
+    if (!isAdmin && !isOwner) {
       return ApiResponse.error(res, 'Unauthorized', 401);
     }
 
@@ -206,5 +260,6 @@ module.exports = {
   getAgentReviews,
   getAllReviewsAdmin,
   updateReviewStatus,
+  updateReview,
   deleteReview
 };

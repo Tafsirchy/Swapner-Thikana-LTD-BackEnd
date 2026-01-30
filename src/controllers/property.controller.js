@@ -31,6 +31,8 @@ const createProperty = async (req, res, next) => {
   }
 };
 
+const { getSortObject, parseNumeric } = require('../utils/queryHelpers');
+
 /**
  * @desc    Get all properties (with filtering, pagination, sorting)
  * @route   GET /api/properties
@@ -41,45 +43,46 @@ const getProperties = async (req, res, next) => {
     const { 
       page = 1, 
       limit = 10, 
-      sort = '-createdAt',
+      sort,
       listingType,
       propertyType,
       minPrice,
       maxPrice,
       minBeds,
       minBaths,
-      area,
+      bedrooms, // Alias for minBeds
+      bathrooms, // Alias for minBaths
+      area, // neighborhood search
+      minArea, 
+      maxArea,
+      size, // Alias for minArea or maxArea check
       city,
       featured,
       search,
       status = 'published',
       bounds,
-      polygon
+      polygon,
+      amenities
     } = req.query;
 
     const query = { status };
+    const andConditions = [];
 
     // Bounding Box Filter (swLat,swLng,neLat,neLng)
     if (bounds) {
       const [swLat, swLng, neLat, neLng] = bounds.split(',').map(Number);
-      query['coordinates.lat'] = { $gte: swLat, $lte: neLat };
-      query['coordinates.lng'] = { $gte: swLng, $lte: neLng };
+      andConditions.push({ 'coordinates.lat': { $gte: swLat, $lte: neLat } });
+      andConditions.push({ 'coordinates.lng': { $gte: swLng, $lte: neLng } });
     }
 
     // Polygon Filter [[lat,lng],...]
     if (polygon) {
       try {
         const points = JSON.parse(polygon);
-        // Map search using point-in-polygon logic
-        // Since we are using numeric lat/lng, we can use a custom aggregation or $geoWithin if we converted to GeoJSON
-        // For now, we'll use regular field filtering and handle polygon logic
-        // Actually, MongoDB's $geoWithin $polygon works with [lng, lat] pairs
-        // If we don't have a 2d index, we might need a workaround or just recommend the user to use bounds for now
-        // I'll implement a simple bounding box fallback for polygon if not fully supported without schema change
         const lats = points.map(p => p[0]);
         const lngs = points.map(p => p[1]);
-        query['coordinates.lat'] = { $gte: Math.min(...lats), $lte: Math.max(...lats) };
-        query['coordinates.lng'] = { $gte: Math.min(...lngs), $lte: Math.max(...lngs) };
+        andConditions.push({ 'coordinates.lat': { $gte: Math.min(...lats), $lte: Math.max(...lats) } });
+        andConditions.push({ 'coordinates.lng': { $gte: Math.min(...lngs), $lte: Math.max(...lngs) } });
       } catch (e) {
         console.error('Invalid polygon format');
       }
@@ -93,32 +96,72 @@ const getProperties = async (req, res, next) => {
     if (city) query['location.city'] = { $regex: city, $options: 'i' };
     
     // Price range
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+    const pMin = parseNumeric(minPrice);
+    const pMax = parseNumeric(maxPrice);
+    if (pMin !== undefined || pMax !== undefined) {
+      const priceFilter = {};
+      if (pMin !== undefined) priceFilter.$gte = pMin;
+      if (pMax !== undefined) priceFilter.$lte = pMax;
+      query.price = priceFilter;
+    }
+
+    // Area range (sq ft) - check both path 'area' and potential 'size'
+    const aMin = parseNumeric(minArea || size);
+    const aMax = parseNumeric(maxArea);
+    if (aMin !== undefined || aMax !== undefined) {
+      const areaFilter = {};
+      if (aMin !== undefined) areaFilter.$gte = aMin;
+      if (aMax !== undefined) areaFilter.$lte = aMax;
+      
+      andConditions.push({
+        $or: [
+          { area: areaFilter },
+          { size: areaFilter }
+        ]
+      });
     }
 
     // Capacity
-    if (minBeds) query.bedrooms = { $gte: Number(minBeds) };
-    if (minBaths) query.bathrooms = { $gte: Number(minBaths) };
+    const bedsNum = parseNumeric(minBeds || bedrooms);
+    const bathsNum = parseNumeric(minBaths || bathrooms);
+    if (bedsNum !== undefined) query.bedrooms = { $gte: bedsNum };
+    if (bathsNum !== undefined) query.bathrooms = { $gte: bathsNum };
 
     // Search
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { 'location.address': { $regex: search, $options: 'i' } }
-      ];
+      andConditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { 'location.address': { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+
+    // Amenities (Ensure strictly all selected are present)
+    if (amenities) {
+      let amenitiesList = [];
+      if (Array.isArray(amenities)) {
+        amenitiesList = amenities;
+      } else if (typeof amenities === 'string') {
+        amenitiesList = amenities.split(',').map(a => a.trim()).filter(Boolean);
+      }
+
+      if (amenitiesList.length > 0) {
+        andConditions.push({ amenities: { $all: amenitiesList } });
+      }
+    }
+
+    // Combine andConditions into query
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     // Sorting
-    let sortObj = {};
-    if (sort) {
-      const field = sort.startsWith('-') ? sort.substring(1) : sort;
-      const order = sort.startsWith('-') ? -1 : 1;
-      sortObj[field] = order;
-    }
+    const sortObj = getSortObject(sort);
+
+    console.log('[DEBUG] getProperties Query:', JSON.stringify(query, null, 2));
+    console.log('[DEBUG] getProperties Sort:', JSON.stringify(sortObj, null, 2));
 
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -155,13 +198,15 @@ const getMyProperties = async (req, res, next) => {
     const query = { agent: new ObjectId(req.user._id) };
     
     // Optional status filter
-    if (req.query.status) {
+    if (req.query.status && req.query.status !== 'all') {
       query.status = req.query.status;
     }
 
+    const sortObj = getSortObject(req.query.sort);
+
     const properties = await Properties()
       .find(query)
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .toArray();
 
     return ApiResponse.success(res, 'My listings fetched', { properties });

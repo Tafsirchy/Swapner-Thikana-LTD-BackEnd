@@ -8,8 +8,9 @@ const { authorize } = require('../middlewares/role.middleware');
 router.get('/property/:propertyId', reviewController.getPropertyReviews);
 router.get('/agent/:agentId', reviewController.getAgentReviews);
 
-// Protected routes (User)
-router.post('/', protect, reviewController.createReview);
+// Routes
+router.post('/', reviewController.createReview); // Anyone can review
+router.put('/:id', protect, reviewController.updateReview); // Owner only
 router.delete('/:id', protect, reviewController.deleteReview); // Owner or Admin
 
 // Admin routes

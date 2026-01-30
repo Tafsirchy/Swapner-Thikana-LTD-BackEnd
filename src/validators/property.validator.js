@@ -31,7 +31,7 @@ const createPropertyValidator = [
   body('propertyType')
     .trim()
     .notEmpty().withMessage('Property type is required')
-    .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse']).withMessage('Invalid property type'),
+    .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse', 'villa', 'duplex', 'penthouse']).withMessage('Invalid property type'),
     
   body('listingType')
     .trim()
@@ -49,6 +49,14 @@ const createPropertyValidator = [
   body('area')
     .notEmpty().withMessage('Area size is required')
     .isNumeric().withMessage('Area must be a number'),
+
+  body('amenities')
+    .optional()
+    .isArray().withMessage('Amenities must be an array'),
+
+  body('features')
+    .optional()
+    .isArray().withMessage('Features must be an array'),
     
   // Prevent mass assignment of sensitive fields
   body('views').not().exists().withMessage('Cannot set views manually'),
@@ -76,12 +84,20 @@ const updatePropertyValidator = [
   body('propertyType')
     .optional()
     .trim()
-    .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse']).withMessage('Invalid property type'),
+    .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse', 'villa', 'duplex', 'penthouse']).withMessage('Invalid property type'),
     
   body('listingType')
     .optional()
     .trim()
     .isIn(['sale', 'rent']).withMessage('Invalid listing type'),
+
+  body('amenities')
+    .optional()
+    .isArray().withMessage('Amenities must be an array'),
+
+  body('features')
+    .optional()
+    .isArray().withMessage('Features must be an array'),
     
   // Prevent mass assignment of sensitive fields
   body('views').not().exists().withMessage('Cannot update views manually'),

@@ -27,6 +27,8 @@ const createProject = async (req, res, next) => {
   }
 };
 
+const { getSortObject } = require('../utils/queryHelpers');
+
 /**
  * @desc    Get all projects
  * @route   GET /api/projects
@@ -39,11 +41,12 @@ const getProjects = async (req, res, next) => {
       limit = 10, 
       status,
       city,
-      search 
+      search,
+      sort
     } = req.query;
 
     const query = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
     if (city) query['location.city'] = { $regex: city, $options: 'i' };
     
     if (search) {
@@ -53,11 +56,13 @@ const getProjects = async (req, res, next) => {
       ];
     }
 
+    const sortObj = getSortObject(sort);
+
     const skip = (Number(page) - 1) * Number(limit);
 
     const projects = await Projects()
       .find(query)
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip(skip)
       .limit(Number(limit))
       .toArray();
