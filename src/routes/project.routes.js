@@ -44,6 +44,6 @@ const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 // @route   POST /api/projects/:id/images
 // @desc    Upload project images
 // @access  Private/Admin
-router.post('/:id/images', protect, authorize('admin'), upload.array('images', 10), imgbbUpload, projectController.uploadProjectImages);
+router.post('/:id/images', protect, authorize('admin'), upload.array('images', 20), imgbbUpload, projectController.uploadProjectImages);
 
 module.exports = router;

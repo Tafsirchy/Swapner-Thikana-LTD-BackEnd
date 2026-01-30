@@ -21,4 +21,18 @@ router.post('/', protect, upload.single('image'), imgbbUpload, (req, res, next) 
   }
 });
 
+// @route   POST /api/upload/public
+// @desc    Upload image to ImgBB (Public)
+// @access  Public
+router.post('/public', upload.single('image'), imgbbUpload, (req, res, next) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return ApiResponse.error(res, 'No image uploaded', 400);
+    }
+    return ApiResponse.success(res, 'Image uploaded successfully', { url: req.file.path }, 201);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

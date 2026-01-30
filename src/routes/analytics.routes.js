@@ -12,4 +12,7 @@ router.get('/admin', authorize('admin'), analyticsController.getAdminAnalytics);
 // Agent Analytics
 router.get('/agent', authorize('agent', 'admin'), analyticsController.getAgentAnalytics);
 
+// Customer Analytics
+router.get('/customer', analyticsController.getCustomerAnalytics);
+
 module.exports = router;

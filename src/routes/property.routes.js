@@ -49,6 +49,6 @@ const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 // @route   POST /api/properties/:id/images
 // @desc    Upload property images
 // @access  Private/Agent/Admin
-router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 10), imgbbUpload, propertyController.uploadPropertyImages);
+router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 20), imgbbUpload, propertyController.uploadPropertyImages);
 
 module.exports = router;

@@ -109,7 +109,65 @@ const getAgentAnalytics = async (req, res, next) => {
   }
 };
 
+const { SavedSearch } = require('../models/SavedSearch');
+
+/**
+ * @desc    Get customer-specific analytics
+ */
+const getCustomerAnalytics = async (req, res, next) => {
+  try {
+    const userId = new ObjectId(req.user._id);
+
+    // 1. Saved Homes Count (from User profile)
+    const user = await Users().findOne({ _id: userId });
+    const savedHomesCount = user.savedProperties ? user.savedProperties.length : 0;
+
+    // 2. Active Inquiries Count
+    const activeInquiriesCount = await Leads().countDocuments({ 
+      user: userId, 
+      status: { $ne: 'closed' } 
+    });
+
+    // 3. Saved Searches Count
+    const savedSearchesCount = await SavedSearch().countDocuments({ user: userId });
+
+    // 4. Recent Inquiries (Last 5)
+    // We need to look up property details for these inquiries
+    const recentInquiries = await Leads().aggregate([
+      { $match: { user: userId } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'properties',
+          localField: 'property',
+          foreignField: '_id',
+          as: 'propertyDetails'
+        }
+      },
+      {
+        $project: {
+          status: 1,
+          createdAt: 1,
+          'property.title': { $arrayElemAt: ['$propertyDetails.title', 0] },
+          'property.image': { $arrayElemAt: ['$propertyDetails.images', 0] }
+        }
+      }
+    ]).toArray();
+
+    return ApiResponse.success(res, 'Customer analytics fetched', {
+      savedHomesCount,
+      activeInquiriesCount,
+      savedSearchesCount,
+      recentInquiries
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAdminAnalytics,
-  getAgentAnalytics
+  getAgentAnalytics,
+  getCustomerAnalytics
 };
