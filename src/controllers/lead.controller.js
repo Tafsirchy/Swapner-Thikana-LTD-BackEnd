@@ -102,7 +102,23 @@ const getLeads = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return ApiResponse.success(res, 'Leads fetched', { leads });
+    // Populate target titles if missing
+    const enrichedLeads = await Promise.all(leads.map(async (lead) => {
+        if (lead.targetId && !lead.propertyName) {
+            let item = null;
+            if (lead.interestType === 'property') {
+                item = await Properties().findOne({ _id: lead.targetId }, { projection: { title: 1 } });
+            } else if (lead.interestType === 'project') {
+                item = await Projects().findOne({ _id: lead.targetId }, { projection: { title: 1 } });
+            }
+            if (item) {
+                return { ...lead, propertyName: item.title };
+            }
+        }
+        return lead;
+    }));
+
+    return ApiResponse.success(res, 'Leads fetched', { leads: enrichedLeads });
   } catch (error) {
     next(error);
   }
@@ -162,7 +178,23 @@ const getMyInquiries = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return ApiResponse.success(res, 'My inquiries fetched', { inquiries });
+    // Populate target titles
+    const enrichedInquiries = await Promise.all(inquiries.map(async (inquiry) => {
+        if (inquiry.targetId && !inquiry.propertyName) {
+            let item = null;
+            if (inquiry.interestType === 'property') {
+                item = await Properties().findOne({ _id: inquiry.targetId }, { projection: { title: 1 } });
+            } else if (inquiry.interestType === 'project') {
+                item = await Projects().findOne({ _id: inquiry.targetId }, { projection: { title: 1 } });
+            }
+            if (item) {
+                return { ...inquiry, propertyName: item.title };
+            }
+        }
+        return inquiry;
+    }));
+
+    return ApiResponse.success(res, 'My inquiries fetched', { inquiries: enrichedInquiries });
   } catch (error) {
     next(error);
   }
