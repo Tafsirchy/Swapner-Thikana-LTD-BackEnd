@@ -114,11 +114,16 @@ const deleteWishlist = async (req, res, next) => {
 const addPropertyToWishlist = async (req, res, next) => {
   try {
     const { id, propertyId } = req.params;
+    const { Projects } = require('../models/Project');
 
-    // Check if property exists
-    const property = await Properties().findOne({ _id: new ObjectId(propertyId) });
-    if (!property) {
-      return ApiResponse.error(res, 'Property not found', 404);
+    // Check if property or project exists
+    let item = await Properties().findOne({ _id: new ObjectId(propertyId) });
+    if (!item) {
+      item = await Projects().findOne({ _id: new ObjectId(propertyId) });
+    }
+
+    if (!item) {
+      return ApiResponse.error(res, 'Item not found', 404);
     }
 
     const result = await Wishlists().updateOne(
@@ -133,7 +138,7 @@ const addPropertyToWishlist = async (req, res, next) => {
       return ApiResponse.error(res, 'Wishlist not found', 404);
     }
 
-    return ApiResponse.success(res, 'Property added to wishlist');
+    return ApiResponse.success(res, 'Item added to wishlist');
   } catch (error) {
     next(error);
   }
@@ -174,6 +179,7 @@ const removePropertyFromWishlist = async (req, res, next) => {
 const getWishlistProperties = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { Projects } = require('../models/Project');
 
     const wishlist = await Wishlists().findOne({
       _id: new ObjectId(id),
@@ -184,11 +190,17 @@ const getWishlistProperties = async (req, res, next) => {
       return ApiResponse.error(res, 'Wishlist not found', 404);
     }
 
-    const properties = await Properties().find({
-      _id: { $in: wishlist.properties || [] }
-    }).toArray();
+    const [properties, projects] = await Promise.all([
+      Properties().find({ _id: { $in: wishlist.properties || [] } }).toArray(),
+      Projects().find({ _id: { $in: wishlist.properties || [] } }).toArray()
+    ]);
 
-    return ApiResponse.success(res, 'Wishlist properties fetched', { properties, wishlist });
+    const items = [
+      ...properties.map(p => ({ ...p, itemType: 'property' })),
+      ...projects.map(p => ({ ...p, itemType: 'project' }))
+    ];
+
+    return ApiResponse.success(res, 'Wishlist items fetched', { properties: items, wishlist });
   } catch (error) {
     next(error);
   }

@@ -152,6 +152,7 @@ const getUserById = async (req, res, next) => {
 const getSavedProperties = async (req, res, next) => {
   try {
     const { Properties } = require('../models/Property');
+    const { Projects } = require('../models/Project');
     
     const user = await Users().findOne(
       { _id: new ObjectId(req.user._id) },
@@ -159,15 +160,23 @@ const getSavedProperties = async (req, res, next) => {
     );
 
     if (!user || !user.savedProperties || user.savedProperties.length === 0) {
-      return ApiResponse.success(res, 'No saved properties', { properties: [] });
+      return ApiResponse.success(res, 'No saved items', { properties: [] });
     }
 
-    const savedPropertyIds = user.savedProperties.map(id => new ObjectId(id));
-    const properties = await Properties().find({
-      _id: { $in: savedPropertyIds }
-    }).toArray();
+    const savedIds = user.savedProperties.map(id => new ObjectId(id));
+    
+    const [properties, projects] = await Promise.all([
+      Properties().find({ _id: { $in: savedIds } }).toArray(),
+      Projects().find({ _id: { $in: savedIds } }).toArray()
+    ]);
 
-    return ApiResponse.success(res, 'Saved properties fetched', { properties });
+    // Combine and mark type for frontend if needed, though they have different structures
+    const items = [
+      ...properties.map(p => ({ ...p, itemType: 'property' })),
+      ...projects.map(p => ({ ...p, itemType: 'project' }))
+    ];
+
+    return ApiResponse.success(res, 'Saved items fetched', { properties: items });
   } catch (error) {
     next(error);
   }
@@ -182,11 +191,16 @@ const addToWishlist = async (req, res, next) => {
   try {
     const { propertyId } = req.params;
     const { Properties } = require('../models/Property');
+    const { Projects } = require('../models/Project');
 
-    // Check if property exists
-    const property = await Properties().findOne({ _id: new ObjectId(propertyId) });
-    if (!property) {
-      return ApiResponse.error(res, 'Property not found', 404);
+    // Check if property or project exists
+    let item = await Properties().findOne({ _id: new ObjectId(propertyId) });
+    if (!item) {
+      item = await Projects().findOne({ _id: new ObjectId(propertyId) });
+    }
+
+    if (!item) {
+      return ApiResponse.error(res, 'Item not found', 404);
     }
 
     // Check if already saved
@@ -196,7 +210,7 @@ const addToWishlist = async (req, res, next) => {
     );
 
     if (user.savedProperties && user.savedProperties.some(id => id.toString() === propertyId)) {
-      return ApiResponse.error(res, 'Property already in wishlist', 400);
+      return ApiResponse.error(res, 'Item already in wishlist', 400);
     }
 
     // Add to savedProperties array
@@ -205,7 +219,7 @@ const addToWishlist = async (req, res, next) => {
       { $addToSet: { savedProperties: new ObjectId(propertyId) } }
     );
 
-    return ApiResponse.success(res, 'Property added to wishlist', { propertyId });
+    return ApiResponse.success(res, 'Item added to wishlist', { propertyId });
   } catch (error) {
     next(error);
   }
@@ -284,6 +298,7 @@ const addRecentlyViewed = async (req, res, next) => {
 const getRecentlyViewed = async (req, res, next) => {
   try {
     const { Properties } = require('../models/Property');
+    const { Projects } = require('../models/Project');
     
     const user = await Users().findOne(
       { _id: new ObjectId(req.user._id) },
@@ -291,20 +306,23 @@ const getRecentlyViewed = async (req, res, next) => {
     );
 
     if (!user || !user.recentlyViewed || user.recentlyViewed.length === 0) {
-      return ApiResponse.success(res, 'No recently viewed properties', { properties: [] });
+      return ApiResponse.success(res, 'No recently viewed items', { properties: [] });
     }
 
     // Keep the order of recent views
-    const properties = await Properties().find({
-      _id: { $in: user.recentlyViewed }
-    }).toArray();
+    const [properties, projects] = await Promise.all([
+      Properties().find({ _id: { $in: user.recentlyViewed } }).toArray(),
+      Projects().find({ _id: { $in: user.recentlyViewed } }).toArray()
+    ]);
+
+    const allItems = [...properties, ...projects];
 
     // Map back to original order
-    const orderedProperties = user.recentlyViewed.map(id => 
-      properties.find(p => p._id.toString() === id.toString())
+    const orderedItems = user.recentlyViewed.map(id => 
+      allItems.find(p => p._id.toString() === id.toString())
     ).filter(Boolean);
 
-    return ApiResponse.success(res, 'Recently viewed properties fetched', { properties: orderedProperties });
+    return ApiResponse.success(res, 'Recently viewed items fetched', { properties: orderedItems });
   } catch (error) {
     next(error);
   }
