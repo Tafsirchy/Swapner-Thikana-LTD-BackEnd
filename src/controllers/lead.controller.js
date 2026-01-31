@@ -12,28 +12,41 @@ const { sendInquiryConfirmationEmail } = require('../utils/emailSender');
  */
 const createLead = async (req, res, next) => {
   try {
-    const { name, email, phone, message, propertyId, interestType } = req.body;
+    const { name, email, phone, message, propertyId, interestType, subject } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !phone || !propertyId) {
+    // Validate required fields (propertyId is now optional for general inquiries)
+    if (!name || !email || !phone) {
       return ApiResponse.error(res, 'Please provide all required fields', 400);
     }
 
-    // Check if property exists
-    const property = await Properties().findOne({ _id: new ObjectId(propertyId) });
-    if (!property) {
-      return ApiResponse.error(res, 'Property not found', 404);
+    let targetItem = null;
+    let itemType = interestType || 'general';
+
+    // If propertyId is provided, try to find the item
+    if (propertyId && ObjectId.isValid(propertyId)) {
+      // Try finding in properties first
+      targetItem = await Properties().findOne({ _id: new ObjectId(propertyId) });
+      if (targetItem) {
+        itemType = 'property';
+      } else {
+        // Then try projects
+        targetItem = await Projects().findOne({ _id: new ObjectId(propertyId) });
+        if (targetItem) {
+          itemType = 'project';
+        }
+      }
     }
 
-    // Create lead
+    // Create lead object
     const lead = {
       name,
       email,
       phone,
       message: message || '',
-      property: new ObjectId(propertyId),
-      agent: property.agent ? new ObjectId(property.agent) : null,
-      interestType: interestType || 'property',
+      subject: subject || (itemType === 'general' ? 'General Inquiry' : `Inquiry for ${itemType}`),
+      targetId: propertyId ? new ObjectId(propertyId) : null,
+      agent: targetItem?.agent ? new ObjectId(targetItem.agent) : null,
+      interestType: itemType,
       status: 'new',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -42,20 +55,24 @@ const createLead = async (req, res, next) => {
     const result = await Leads().insertOne(lead);
     const createdLead = { ...lead, _id: result.insertedId };
 
-    // Send confirmation email to user (async, don't wait)
+    // Send confirmation email to user (async)
     try {
-      await sendInquiryConfirmationEmail(createdLead, property);
+      if (itemType === 'property' || itemType === 'project') {
+        await sendInquiryConfirmationEmail(createdLead, targetItem);
+      } else {
+        // For general inquiries, maybe a simpler email or same with no property
+        await sendInquiryConfirmationEmail(createdLead, null);
+      }
     } catch (emailError) {
       console.error('Failed to send inquiry confirmation email:', emailError);
-      // Don't fail the request if email fails
     }
 
     // Create notification for agent if exists
-    if (property.agent) {
+    if (targetItem?.agent) {
       await createNotificationHelper(
-        property.agent,
+        targetItem.agent,
         'New Inquiry Received',
-        `You have a new inquiry for property: ${property.title}.`,
+        `You have a new inquiry for ${itemType}: ${targetItem.title}.`,
         `/agent/leads/${createdLead._id}`
       );
     }

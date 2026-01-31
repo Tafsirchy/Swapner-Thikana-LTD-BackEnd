@@ -113,11 +113,11 @@ const sendInquiryConfirmationEmail = async (inquiry, property) => {
   
   return sendEmail({
     to: inquiry.email,
-    subject: '✅ Inquiry Received - STLTD Properties',
+    subject: inquiry.subject || '✅ Inquiry Received - STLTD Properties',
     template: 'inquiry-confirmation',
     data: {
       userName: inquiry.name,
-      propertyTitle: property.title,
+      propertyTitle: property ? property.title : (inquiry.subject || 'General Inquiry'),
       userEmail: inquiry.email,
       userPhone: inquiry.phone,
       message: inquiry.message,
@@ -126,7 +126,7 @@ const sendInquiryConfirmationEmail = async (inquiry, property) => {
         month: 'long',
         day: 'numeric'
       }),
-      propertyUrl: `${baseUrl}/properties/${property.slug}`,
+      propertyUrl: property ? `${baseUrl}/properties/${property.slug}` : `${baseUrl}/contact`,
       dashboardUrl: `${baseUrl}/dashboard`,
       contactUrl: `${baseUrl}/contact`
     }
