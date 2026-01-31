@@ -37,7 +37,7 @@ const updateLeadStatusValidator = [
   body('status')
     .trim()
     .notEmpty().withMessage('Status is required')
-    .isIn(['new', 'contacted', 'qualified', 'lost', 'closed']).withMessage('Invalid status'),
+    .isIn(['new', 'contacted', 'qualified', 'converted', 'lost', 'closed']).withMessage('Invalid status'),
 ];
 
 module.exports = {
