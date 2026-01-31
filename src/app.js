@@ -57,6 +57,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/public', require('./routes/public.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/properties', require('./routes/property.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
