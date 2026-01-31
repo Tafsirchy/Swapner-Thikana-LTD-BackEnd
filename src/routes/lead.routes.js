@@ -30,4 +30,9 @@ router.patch('/:id/status', protect, authorize('agent', 'admin'), updateLeadStat
 // @access  Private (Agent/Admin)
 router.post('/:id/notes', protect, authorize('agent', 'admin'), leadController.addLeadNote);
 
+// @route   DELETE /api/leads/:id
+// @desc    Delete a lead
+// @access  Private (Admin)
+router.delete('/:id', protect, authorize('admin'), leadController.deleteLead);
+
 module.exports = router;

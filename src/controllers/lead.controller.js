@@ -235,10 +235,27 @@ const addLeadNote = async (req, res, next) => {
   }
 };
 
+const deleteLead = async (req, res, next) => {
+  try {
+    const leadId = new ObjectId(req.params.id);
+    
+    const result = await Leads().deleteOne({ _id: leadId });
+    
+    if (result.deletedCount === 0) {
+      return ApiResponse.error(res, 'Lead not found', 404);
+    }
+
+    return ApiResponse.success(res, 'Lead deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
   updateLeadStatus,
   getMyInquiries,
   addLeadNote,
+  deleteLead
 };
