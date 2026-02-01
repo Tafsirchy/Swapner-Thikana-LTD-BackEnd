@@ -76,7 +76,7 @@ const updateUserRole = async (req, res, next) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!['customer', 'agent', 'admin'].includes(role)) {
+    if (!['customer', 'agent', 'admin', 'management'].includes(role)) {
       return ApiResponse.error(res, 'Invalid role', 400);
     }
 

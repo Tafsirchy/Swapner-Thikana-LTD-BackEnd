@@ -31,17 +31,17 @@ router.get('/slug/:slug', propertyController.getPropertyBySlug);
 // @route   POST /api/properties
 // @desc    Create a new property
 // @access  Private/Agent/Admin
-router.post('/', protect, authorize('agent', 'admin'), createPropertyValidator, validate, propertyController.createProperty);
+router.post('/', protect, authorize('agent', 'admin', 'management'), createPropertyValidator, validate, propertyController.createProperty);
 
 // @route   PUT /api/properties/:id
 // @desc    Update property
 // @access  Private/Agent/Admin
-router.put('/:id', protect, authorize('agent', 'admin'), updatePropertyValidator, validate, propertyController.updateProperty);
+router.put('/:id', protect, authorize('agent', 'admin', 'management'), updatePropertyValidator, validate, propertyController.updateProperty);
 
 // @route   DELETE /api/properties/:id
 // @desc    Delete property
 // @access  Private/Agent/Admin
-router.delete('/:id', protect, authorize('agent', 'admin'), propertyController.deleteProperty);
+router.delete('/:id', protect, authorize('agent', 'admin', 'management'), propertyController.deleteProperty);
 
 const upload = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
@@ -49,6 +49,6 @@ const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 // @route   POST /api/properties/:id/images
 // @desc    Upload property images
 // @access  Private/Agent/Admin
-router.post('/:id/images', protect, authorize('agent', 'admin'), upload.array('images', 20), imgbbUpload, propertyController.uploadPropertyImages);
+router.post('/:id/images', protect, authorize('agent', 'admin', 'management'), upload.array('images', 20), imgbbUpload, propertyController.uploadPropertyImages);
 
 module.exports = router;

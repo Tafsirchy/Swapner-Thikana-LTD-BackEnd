@@ -20,22 +20,20 @@ const {
 
 // All routes require authentication and admin role
 router.use(protect);
-router.use(authorize('admin'));
+// Dashboard (Admin & Management)
+router.get('/dashboard', authorize('admin', 'management'), getDashboardStats);
 
-// Dashboard
-router.get('/dashboard', getDashboardStats);
+// User Management (Admin Only)
+router.get('/users', authorize('admin'), getAllUsers);
+router.put('/users/:id/role', authorize('admin'), updateUserRole);
+router.put('/users/:id/status', authorize('admin'), updateUserStatus);
+router.delete('/users/:id', authorize('admin'), deleteUser);
 
-// User Management
-router.get('/users', getAllUsers);
-router.put('/users/:id/role', updateUserRole);
-router.put('/users/:id/status', updateUserStatus);
-router.delete('/users/:id', deleteUser);
-
-// Property Management
-router.get('/properties', getAllProperties);
-router.put('/properties/:id/approve', approveProperty);
-router.put('/properties/:id/reject', rejectProperty);
-router.put('/properties/:id/feature', toggleFeatured);
+// Property Management (Admin & Management)
+router.get('/properties', authorize('admin', 'management'), getAllProperties);
+router.put('/properties/:id/approve', authorize('admin', 'management'), approveProperty);
+router.put('/properties/:id/reject', authorize('admin', 'management'), rejectProperty);
+router.put('/properties/:id/feature', authorize('admin', 'management'), toggleFeatured);
 
 // Email Templates
 router.get('/email-templates', getEmailTemplates);
