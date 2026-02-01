@@ -209,6 +209,16 @@ const addLeadNote = async (req, res, next) => {
       return ApiResponse.error(res, 'Note text is required', 400);
     }
 
+    const lead = await Leads().findOne({ _id: leadId });
+    if (!lead) {
+      return ApiResponse.error(res, 'Lead not found', 404);
+    }
+
+    // Role check: Only assigned agent or admin
+    if (req.user.role === 'agent' && lead.agent?.toString() !== req.user._id.toString()) {
+      return ApiResponse.error(res, 'Not authorized to add notes to this lead', 403);
+    }
+
     const note = {
       _id: new ObjectId(),
       text,
@@ -238,6 +248,16 @@ const addLeadNote = async (req, res, next) => {
 const deleteLead = async (req, res, next) => {
   try {
     const leadId = new ObjectId(req.params.id);
+    const lead = await Leads().findOne({ _id: leadId });
+
+    if (!lead) {
+      return ApiResponse.error(res, 'Lead not found', 404);
+    }
+
+    // Role check: Only assigned agent or admin
+    if (req.user.role === 'agent' && lead.agent?.toString() !== req.user._id.toString()) {
+      return ApiResponse.error(res, 'Not authorized to delete this lead', 403);
+    }
     
     const result = await Leads().deleteOne({ _id: leadId });
     

@@ -34,7 +34,7 @@ const register = async (req, res, next) => {
       email: email.toLowerCase(),
       password: hashedPassword,
       phone,
-      role: role || 'customer',
+      role: 'customer', // Force customer role for self-registration
       isActive: true,
       isVerified: false,
       verificationToken,

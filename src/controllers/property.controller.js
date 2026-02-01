@@ -394,6 +394,16 @@ const uploadPropertyImages = async (req, res, next) => {
 
     const imageUrls = req.files.map(file => file.path);
     const propertyId = new ObjectId(req.params.id);
+    const property = await Properties().findOne({ _id: propertyId });
+
+    if (!property) {
+      return ApiResponse.error(res, 'Property not found', 404);
+    }
+
+    // Check ownership
+    if (property.agent.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return ApiResponse.error(res, 'Not authorized to upload images to this property', 403);
+    }
 
     await Properties().updateOne(
       { _id: propertyId },
