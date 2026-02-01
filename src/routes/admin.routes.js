@@ -36,7 +36,7 @@ router.put('/properties/:id/reject', authorize('admin', 'management'), rejectPro
 router.put('/properties/:id/feature', authorize('admin', 'management'), toggleFeatured);
 
 // Email Templates
-router.get('/email-templates', getEmailTemplates);
-router.get('/email-preview/:type', getEmailPreview);
+router.get('/email-templates', authorize('admin', 'management'), getEmailTemplates);
+router.get('/email-preview/:type', authorize('admin', 'management'), getEmailPreview);
 
 module.exports = router;
