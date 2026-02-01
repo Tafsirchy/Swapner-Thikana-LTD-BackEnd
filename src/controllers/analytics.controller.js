@@ -84,11 +84,11 @@ const getAgentAnalytics = async (req, res, next) => {
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]).toArray();
 
-    // 3. New leads in last 7 days
+    // 3. New leads in last 7 days (Aggregate)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
-    const recentLeads = await Leads().aggregate([
+    const recentLeadsStats = await Leads().aggregate([
       { $match: { agent: agentId, createdAt: { $gte: sevenDaysAgo } } },
       {
         $group: {
@@ -99,10 +99,46 @@ const getAgentAnalytics = async (req, res, next) => {
       { $sort: { _id: 1 } }
     ]).toArray();
 
+    // 4. Individual Recent Leads (Actual Lead Details)
+    const recentLeads = await Leads().aggregate([
+      { $match: { agent: agentId } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'properties',
+          localField: 'property',
+          foreignField: '_id',
+          as: 'propertyDetails'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          status: 1,
+          createdAt: 1,
+          interestType: 1,
+          'property.title': { $arrayElemAt: ['$propertyDetails.title', 0] }
+        }
+      }
+    ]).toArray();
+
+    // 5. Profile Strength Calculation
+    const user = await Users().findOne({ _id: agentId });
+    const profileFields = ['bio', 'image', 'specialization', 'experience', 'phone'];
+    const completedFields = profileFields.filter(field => !!user[field]);
+    const profileStrength = {
+      score: Math.round((completedFields.length / profileFields.length) * 100),
+      missingFields: profileFields.filter(field => !user[field])
+    };
+
     return ApiResponse.success(res, 'Agent analytics fetched', {
       listingsPerformance,
       leadStats,
-      recentLeads
+      recentLeadsStats,
+      recentLeads,
+      profileStrength
     });
   } catch (error) {
     next(error);

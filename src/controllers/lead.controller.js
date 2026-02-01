@@ -94,7 +94,7 @@ const getLeads = async (req, res, next) => {
     
     // Agents only see their leads
     if (req.user.role === 'agent') {
-      query.assignedTo = new ObjectId(req.user._id);
+      query.agent = new ObjectId(req.user._id);
     }
 
     const leads = await Leads()
@@ -140,7 +140,7 @@ const updateLeadStatus = async (req, res, next) => {
     }
 
     // Role check
-    if (req.user.role === 'agent' && lead.assignedTo.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'agent' && lead.agent?.toString() !== req.user._id.toString()) {
       return ApiResponse.error(res, 'Not authorized', 403);
     }
 

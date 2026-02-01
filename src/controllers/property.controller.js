@@ -327,6 +327,11 @@ const updateProperty = async (req, res, next) => {
       return ApiResponse.error(res, 'Property not found', 404);
     }
 
+    // Check ownership
+    if (property.agent.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return ApiResponse.error(res, 'Not authorized to update this property', 403);
+    }
+
     const updateData = { ...req.body, updatedAt: new Date() };
     const wasPublished = property.status === 'published';
     const isNowPublished = updateData.status === 'published';
