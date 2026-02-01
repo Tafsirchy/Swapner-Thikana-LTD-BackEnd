@@ -77,6 +77,7 @@ app.use('/api/management', require('./routes/management.routes'));
 app.use('/api/agents', require('./routes/agent.routes'));
 app.use('/api/upload', require('./routes/upload.routes'));
 app.use('/api/seller', require('./routes/seller.routes'));
+app.use('/api/history', require('./routes/history.routes'));
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
