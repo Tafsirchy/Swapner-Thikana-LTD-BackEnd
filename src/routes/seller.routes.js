@@ -8,7 +8,7 @@ const { authorize } = require('../middlewares/role.middleware');
 router.post('/submit', sellerController.submitInquiry);
 
 // Admin routes
-router.get('/admin/all', protect, authorize('admin'), sellerController.getAllInquiries);
-router.put('/admin/:id/status', protect, authorize('admin'), sellerController.updateInquiryStatus);
+router.get('/admin/all', protect, authorize('admin', 'management'), sellerController.getAllInquiries);
+router.put('/admin/:id/status', protect, authorize('admin', 'management'), sellerController.updateInquiryStatus);
 
 module.exports = router;

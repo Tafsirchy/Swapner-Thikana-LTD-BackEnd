@@ -7,7 +7,7 @@ const { authorize } = require('../middlewares/role.middleware');
 router.use(protect);
 
 // Admin Analytics
-router.get('/admin', authorize('admin'), analyticsController.getAdminAnalytics);
+router.get('/admin', authorize('admin', 'management'), analyticsController.getAdminAnalytics);
 
 // Agent Analytics
 router.get('/agent', authorize('agent', 'admin'), analyticsController.getAgentAnalytics);

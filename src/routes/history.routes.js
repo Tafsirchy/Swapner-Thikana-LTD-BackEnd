@@ -9,7 +9,7 @@ router.get('/', historyController.getPublicHistory);
 
 // Admin routes (Protected)
 router.use(protect);
-router.use(authorize('admin'));
+router.use(authorize('admin', 'management'));
 
 router.get('/admin', historyController.getAllMilestones);
 router.get('/:id', historyController.getMilestoneById);

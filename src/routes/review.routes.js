@@ -14,7 +14,7 @@ router.put('/:id', protect, reviewController.updateReview); // Owner only
 router.delete('/:id', protect, reviewController.deleteReview); // Owner or Admin
 
 // Admin routes
-router.get('/admin/all', protect, authorize('admin'), reviewController.getAllReviewsAdmin);
-router.put('/:id/status', protect, authorize('admin'), reviewController.updateReviewStatus);
+router.get('/admin/all', protect, authorize('admin', 'management'), reviewController.getAllReviewsAdmin);
+router.put('/:id/status', protect, authorize('admin', 'management'), reviewController.updateReviewStatus);
 
 module.exports = router;

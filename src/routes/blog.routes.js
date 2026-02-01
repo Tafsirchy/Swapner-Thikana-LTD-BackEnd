@@ -28,16 +28,16 @@ const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 // @route   POST /api/blogs
 // @desc    Create a blog
 // @access  Private/Admin
-router.post('/', protect, authorize('admin'), upload.single('image'), imgbbUpload, createBlogValidator, validate, blogController.createBlog);
+router.post('/', protect, authorize('admin', 'management'), upload.single('image'), imgbbUpload, createBlogValidator, validate, blogController.createBlog);
 
 // @route   PUT /api/blogs/:id
 // @desc    Update a blog
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin'), upload.single('image'), imgbbUpload, updateBlogValidator, validate, blogController.updateBlog);
+router.put('/:id', protect, authorize('admin', 'management'), upload.single('image'), imgbbUpload, updateBlogValidator, validate, blogController.updateBlog);
 
 // @route   DELETE /api/blogs/:id
 // @desc    Delete a blog
 // @access  Private/Admin
-router.delete('/:id', protect, authorize('admin'), blogController.deleteBlog);
+router.delete('/:id', protect, authorize('admin', 'management'), blogController.deleteBlog);
 
 module.exports = router;
