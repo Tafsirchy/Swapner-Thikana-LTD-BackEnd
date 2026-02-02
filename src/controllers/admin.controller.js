@@ -1,7 +1,9 @@
 const { Users } = require('../models/User');
 const { Properties } = require('../models/Property');
+const { Management } = require('../models/Management');
 const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
+const { handleNewProperty } = require('../utils/alertService');
 
 /**
  * @desc    Get admin dashboard statistics
@@ -28,7 +30,9 @@ const getDashboardStats = async (req, res, next) => {
         totalCustomers,
         activeListings,
         pendingApprovals,
-        totalProperties
+        totalProperties,
+        managementUsers: await usersCollection.countDocuments({ role: 'management' }),
+        leadershipProfiles: await Management().countDocuments()
       }
     });
   } catch (error) {
@@ -245,6 +249,12 @@ const approveProperty = async (req, res, next) => {
 
     if (result.matchedCount === 0) {
       return ApiResponse.error(res, 'Property not found', 404);
+    }
+
+    // Trigger instant alerts for the newly approved property
+    const property = await Properties().findOne({ _id: new ObjectId(id) });
+    if (property) {
+      handleNewProperty(property);
     }
 
     return ApiResponse.success(res, 'Property approved and published');

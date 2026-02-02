@@ -10,7 +10,7 @@ router.use(protect);
 router.get('/admin', authorize('admin', 'management'), analyticsController.getAdminAnalytics);
 
 // Agent Analytics
-router.get('/agent', authorize('agent', 'admin'), analyticsController.getAgentAnalytics);
+router.get('/agent', authorize('agent', 'admin', 'management'), analyticsController.getAgentAnalytics);
 
 // Customer Analytics
 router.get('/customer', analyticsController.getCustomerAnalytics);

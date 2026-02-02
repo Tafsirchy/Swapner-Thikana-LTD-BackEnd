@@ -145,7 +145,7 @@ const getAgentAnalytics = async (req, res, next) => {
   }
 };
 
-const { SavedSearch } = require('../models/SavedSearch');
+const { SavedSearches } = require('../models/SavedSearch');
 
 /**
  * @desc    Get customer-specific analytics
@@ -165,7 +165,7 @@ const getCustomerAnalytics = async (req, res, next) => {
     });
 
     // 3. Saved Searches Count
-    const savedSearchesCount = await SavedSearch().countDocuments({ user: userId });
+    const savedSearchesCount = await SavedSearches().countDocuments({ user: userId });
 
     // 4. Recent Inquiries (Last 5)
     // We need to look up property details for these inquiries

@@ -25,6 +25,11 @@ const createProperty = async (req, res, next) => {
     const result = await Properties().insertOne(propertyData);
     const property = { ...propertyData, _id: result.insertedId };
 
+    // Trigger instant alerts if property is published immediately
+    if (property.status === 'published') {
+      handleNewProperty(property);
+    }
+
     return ApiResponse.success(res, 'Property created successfully. Awaiting approval.', { property }, 201);
   } catch (error) {
     next(error);
