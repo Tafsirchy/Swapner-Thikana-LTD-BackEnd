@@ -8,6 +8,11 @@ const app = express();
 
 app.use(cookieParser());
 
+// Initialize Passport
+const passport = require('passport');
+require('./config/passport'); // Load passport configuration
+app.use(passport.initialize());
+
 // DEBUG: Request Inspector
 app.use((req, res, next) => {
   if (req.url.includes('/api/auth') || req.url.includes('/api/notifications')) {
