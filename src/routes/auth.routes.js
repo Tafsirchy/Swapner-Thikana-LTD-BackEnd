@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authController = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
+const passport = require('passport');
 
 const { validate } = require('../middlewares/validation.middleware');
 const { 
@@ -47,5 +48,24 @@ router.get('/me', protect, authController.getMe);
 // @desc    Change password
 // @access  Private
 router.post('/change-password', protect, changePasswordValidator, validate, authController.changePassword);
+
+// @route   GET /api/auth/google
+// @desc    Initiate Google OAuth
+// @access  Public
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// @route   GET /api/auth/google/callback
+// @desc    Google OAuth callback
+// @access  Public
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  authController.googleCallback
+);
+
+// @route   POST /api/auth/logout
+// @desc    Logout user
+// @access  Private
+router.post('/logout', protect, authController.logout);
 
 module.exports = router;

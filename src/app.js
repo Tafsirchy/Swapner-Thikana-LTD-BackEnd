@@ -2,43 +2,50 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit =require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 
 const app = express();
+
+app.use(cookieParser());
+
+// DEBUG: Request Inspector
+app.use((req, res, next) => {
+  if (req.url.includes('/api/auth') || req.url.includes('/api/notifications')) {
+    console.log(`\n[DEBUG] Request: ${req.method} ${req.url}`);
+    console.log(`[DEBUG] Origin: ${req.headers.origin}`);
+    console.log(`[DEBUG] Cookie Header: ${req.headers.cookie ? 'Present' : 'Missing'}`);
+    if (req.headers.cookie) {
+      console.log(`[DEBUG] Cookies keys: ${Object.keys(req.cookies || {}).join(', ')}`);
+    }
+  }
+  next();
+});
 
 // Security middleware (configured to allow CORS)
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 
-// CORS - Robust Manual Implementation
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Reflection logic for credentials support
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Auth-Token');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+// CORS configuration
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    // In development, allow any origin. In production, be more strict.
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Auth-Token'],
+}));
 
-  // Handle Preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
+// Body parser (Must be before routes)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging
 const morgan = require('morgan');
 app.use(morgan('dev'));
-
-// Body parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');

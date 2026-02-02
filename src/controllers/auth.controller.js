@@ -4,6 +4,19 @@ const { Users } = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const ApiResponse = require('../utils/apiResponse');
 const sendEmail = require('../config/email');
+
+const setTokenCookie = (res, token) => {
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days matching JWT_EXPIRES_IN
+    ),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  };
+
+  res.cookie('token', token, cookieOptions);
+};
 const { getEmailVerificationTemplate } = require('../utils/emailTemplates');
 
 /**
@@ -65,8 +78,13 @@ const register = async (req, res, next) => {
     delete user.password;
     delete user.verificationToken;
 
+    // Generate token and set cookie
+    const token = generateToken(user._id);
+    setTokenCookie(res, token);
+
     return ApiResponse.success(res, 'Registration successful. Please check your email to verify your account.', {
       user,
+      token, // Still returning for compatibility while transition occurs
     }, 201);
   } catch (error) {
     next(error);
@@ -139,6 +157,7 @@ const login = async (req, res, next) => {
 
     // 4. Generate token
     const token = generateToken(user._id);
+    setTokenCookie(res, token);
 
     // Clean user object
     const userProfile = { ...user };
@@ -309,6 +328,48 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Logout user - Clear cookie
+ * @route   POST /api/auth/logout
+ * @access  Private
+ */
+const logout = async (req, res, next) => {
+  const cookieOptions = {
+    expires: new Date(Date.now() + 10 * 1000), // Expire in 10 seconds
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  };
+
+  res.cookie('token', 'none', cookieOptions);
+
+  return ApiResponse.success(res, 'Logged out successfully');
+};
+
+/**
+ * @desc    Google OAuth callback
+ * @route   GET /api/auth/google/callback
+ * @access  Public
+ */
+const googleCallback = async (req, res, next) => {
+  try {
+    // Passport adds authenticated user to req.user
+    const user = req.user;
+    
+    // Generate token and set cookie
+    const token = generateToken(user._id);
+    setTokenCookie(res, token);
+
+    // Redirect back to frontend
+    // You can also pass a success flag or token in URL if needed, 
+    // but cookies are preferred for security.
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/dashboard?login=success`);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -317,4 +378,6 @@ module.exports = {
   resetPassword,
   getMe,
   changePassword,
+  logout,
+  googleCallback
 };

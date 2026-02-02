@@ -14,6 +14,9 @@ const startServer = async () => {
     const { initializeFirebase } = require('./utils/notificationService');
     initializeFirebase();
 
+    // Initialize Passport
+    require('./config/passport');
+
     const server = app.listen(PORT, () => {
       console.log(`\n🚀 Server is running in ${process.env.NODE_ENV || 'development'} mode`);
       console.log(`📡 Server URL: http://localhost:${PORT}`);
