@@ -26,7 +26,7 @@ const { getEmailVerificationTemplate } = require('../utils/emailTemplates');
  */
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone } = req.body;
 
     // 1. Check if user already exists
     const existingUser = await Users().findOne({ email: email.toLowerCase() });
@@ -48,6 +48,7 @@ const register = async (req, res, next) => {
       password: hashedPassword,
       phone,
       role: 'customer', // Force customer role for self-registration
+      status: 'active',  // Add status field for consistency
       isActive: true,
       isVerified: false,
       verificationToken,
@@ -135,17 +136,13 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     // 1. Find user
-    console.log(`Login attempt for: ${email}`);
     const user = await Users().findOne({ email: email.toLowerCase().trim() });
     if (!user) {
-      console.log('User not found in DB');
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
 
     // 2. Check password
-    console.log(`Checking password for ${email}. Salted hash in DB starts with: ${user.password.substring(0, 10)}...`);
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(`Password match for ${email}: ${isMatch}`);
     if (!isMatch) {
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
@@ -360,11 +357,13 @@ const googleCallback = async (req, res, next) => {
     const token = generateToken(user._id);
     setTokenCookie(res, token);
 
-    // Redirect back to frontend
-    // You can also pass a success flag or token in URL if needed, 
-    // but cookies are preferred for security.
+    // Redirect based on user role
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/dashboard?login=success`);
+    const redirectUrl = user.role === 'admin' 
+      ? `${frontendUrl}/dashboard/admin?login=success`
+      : `${frontendUrl}/?login=success`;
+    
+    res.redirect(redirectUrl);
   } catch (error) {
     next(error);
   }

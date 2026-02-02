@@ -47,11 +47,11 @@ const getDashboardStats = async (req, res, next) => {
  */
 const getAllUsers = async (req, res, next) => {
   try {
-    const { role, status, search } = req.query;
-    const query = {};
+    const { role, status, search, page = 1, limit = 10 } = req.query;
+    const query = { isActive: { $ne: false } }; // Default exclude soft-deleted users
 
     if (role) query.role = role;
-    if (status) query.isActive = status === 'active';
+    if (status) query.status = status;
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -59,12 +59,31 @@ const getAllUsers = async (req, res, next) => {
       ];
     }
 
+    const skip = (Number(page) - 1) * Number(limit);
+
     const users = await Users()
       .find(query, { projection: { password: 0 } })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
       .toArray();
 
-    return ApiResponse.success(res, 'Users fetched successfully', { users });
+    const total = await Users().countDocuments(query);
+
+    const mappedUsers = users.map(u => ({
+      ...u,
+      status: u.status || 'active'
+    }));
+
+    return ApiResponse.success(res, 'Users fetched successfully', { 
+      users: mappedUsers,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -84,9 +103,18 @@ const updateUserRole = async (req, res, next) => {
       return ApiResponse.error(res, 'Invalid role', 400);
     }
 
-    // Don't allow changing own role
+    // Don't allow changing own role or any admin role
+    const targetUser = await Users().findOne({ _id: new ObjectId(id) });
+    if (!targetUser) {
+      return ApiResponse.error(res, 'User not found', 404);
+    }
+
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own role', 400);
+    }
+
+    if (targetUser.role === 'admin') {
+      return ApiResponse.error(res, 'Administrator roles are protected and cannot be changed', 403);
     }
 
     const result = await Users().updateOne(
@@ -112,27 +140,44 @@ const updateUserRole = async (req, res, next) => {
 const updateUserStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { isActive } = req.body;
+    const { status } = req.body; // Expecting 'active', 'inactive', or 'suspended'
 
-    if (typeof isActive !== 'boolean') {
-      return ApiResponse.error(res, 'isActive must be a boolean', 400);
+    if (!['active', 'inactive', 'suspended'].includes(status)) {
+      return ApiResponse.error(res, 'Invalid status value', 400);
     }
 
-    // Don't allow deactivating own account
+    // Don't allow changing own status or any admin status
+    const targetUser = await Users().findOne({ _id: new ObjectId(id) });
+    if (!targetUser) {
+      return ApiResponse.error(res, 'User not found', 404);
+    }
+
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own status', 400);
     }
 
+    if (targetUser.role === 'admin') {
+      return ApiResponse.error(res, 'Administrator accounts are protected and status cannot be changed', 403);
+    }
+
+    const isActive = status === 'active';
+
     const result = await Users().updateOne(
       { _id: new ObjectId(id) },
-      { $set: { isActive, updatedAt: new Date() } }
+      { 
+        $set: { 
+          status, 
+          isActive, // Keep for backward compatibility in middleware
+          updatedAt: new Date() 
+        } 
+      }
     );
 
     if (result.matchedCount === 0) {
       return ApiResponse.error(res, 'User not found', 404);
     }
 
-    return ApiResponse.success(res, `User ${isActive ? 'activated' : 'deactivated'} successfully`);
+    return ApiResponse.success(res, `User status updated to ${status} successfully`);
   } catch (error) {
     next(error);
   }
@@ -154,7 +199,7 @@ const deleteUser = async (req, res, next) => {
 
     const result = await Users().updateOne(
       { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
+      { $set: { isActive: false, status: 'inactive', updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) {

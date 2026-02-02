@@ -7,7 +7,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID || 'place_your_client_id_here',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'place_your_client_secret_here',
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
       proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -31,7 +31,9 @@ passport.use(
         const newUser = {
           name: profile.displayName,
           email: email,
+          phone: '', // Google OAuth doesn't provide phone
           role: 'customer',
+          status: 'active', // Add status field for consistency
           isActive: true,
           isVerified: true, // Google accounts are verified
           googleId: profile.id,

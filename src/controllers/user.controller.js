@@ -29,11 +29,9 @@ const getUsers = async (req, res, next) => {
     }
     
     // For specific role queries (like management), exclude sensitive data but keep bio/designation
+    // Ensure status is handled correctly
     const projection = { password: 0 };
-    if (role === 'management') {
-         // ensure management profile fields are returned
-    }
-
+    
     const skip = (Number(page) - 1) * Number(limit);
     
     const users = await Users()
@@ -43,10 +41,17 @@ const getUsers = async (req, res, next) => {
         .limit(Number(limit))
         .toArray();
         
+    // Map isActive to status for legacy support if needed, 
+    // but better to rely on new status field
+    const mappedUsers = users.map(u => ({
+      ...u,
+      status: u.status || (u.isActive === false ? 'inactive' : 'active')
+    }));
+
     const total = await Users().countDocuments(query);
     
     return ApiResponse.success(res, 'Users fetched', { 
-        users,
+        users: mappedUsers,
         pagination: {
             total,
             page: Number(page),
