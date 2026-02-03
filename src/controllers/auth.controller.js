@@ -19,6 +19,7 @@ const setTokenCookie = (res, token) => {
   res.cookie('token', token, cookieOptions);
 };
 const { getEmailVerificationTemplate } = require('../utils/emailTemplates');
+const { sendWelcomeEmail } = require('../utils/emailSender');
 
 /**
  * @desc    Register a new user
@@ -148,6 +149,14 @@ const verifyEmail = async (req, res, next) => {
     // For now, we assume success or user has to register again (which is safe fail-state).
     await Users().insertOne(newUser);
     
+    // 4. Send Welcome Email (Async)
+    try {
+      await sendWelcomeEmail(newUser);
+    } catch (msgError) {
+      console.error('[VERIFY EMAIL] Failed to send welcome email:', msgError);
+      // Don't block flow
+    }
+
     console.log('[VERIFY EMAIL] User verified and moved to main collection:', newUser.email);
 
     return ApiResponse.success(res, 'Email verified successfully. Registration complete. You can now login.');

@@ -3,6 +3,8 @@ const ApiResponse = require('../utils/apiResponse');
 const { generateUniqueSlug } = require('../utils/slugify');
 const { ObjectId } = require('mongodb');
 const { handleNewProperty } = require('../utils/alertService');
+const { createNotificationHelper } = require('./notification.controller');
+const { Wishlists } = require('../models/Wishlist');
 
 /**
  * @desc    Create a new property
@@ -15,6 +17,11 @@ const createProperty = async (req, res, next) => {
       ...req.body,
       agent: new ObjectId(req.user._id),
       slug: await generateUniqueSlug(req.body.title, Properties()),
+      // Ensure numeric consistency
+      price: Number(req.body.price),
+      bedrooms: req.body.bedrooms ? Number(req.body.bedrooms) : undefined,
+      bathrooms: req.body.bathrooms ? Number(req.body.bathrooms) : undefined,
+      area: Number(req.body.area),
       createdAt: new Date(),
       updatedAt: new Date(),
       status: req.body.status || 'pending',
@@ -338,6 +345,13 @@ const updateProperty = async (req, res, next) => {
     }
 
     const updateData = { ...req.body, updatedAt: new Date() };
+    
+    // Ensure numeric consistency
+    if (updateData.price) updateData.price = Number(updateData.price);
+    if (updateData.bedrooms) updateData.bedrooms = Number(updateData.bedrooms);
+    if (updateData.bathrooms) updateData.bathrooms = Number(updateData.bathrooms);
+    if (updateData.area) updateData.area = Number(updateData.area);
+
     const wasPublished = property.status === 'published';
     const isNowPublished = updateData.status === 'published';
 
@@ -351,6 +365,44 @@ const updateProperty = async (req, res, next) => {
     // Trigger instant alerts if property just got published
     if (!wasPublished && isNowPublished) {
       handleNewProperty(updatedProperty);
+
+      // Notify the Agent
+      await createNotificationHelper(
+        property.agent,
+        'property_status',
+        'Property Published',
+        `Your property "${updatedProperty.title}" is now live and visible to buyers.`,
+        `/dashboard/properties/${updatedProperty._id}`
+      );
+    }
+
+    // Property Rejected Notification
+    if (updateData.status === 'rejected' && property.status !== 'rejected') {
+       await createNotificationHelper(
+        property.agent,
+        'property_status',
+        'Property Rejected',
+        `Your property "${updatedProperty.title}" was rejected. Please check for details.`,
+        `/dashboard/properties/${updatedProperty._id}`
+      );
+    }
+
+    // Check for Price Drop
+    if (updateData.price && updateData.price < property.price) {
+      // Find all users who have this property in their wishlist
+      const wishlists = await Wishlists().find({ properties: propertyId }).toArray();
+      
+      console.log(`📉 Price moved from ${property.price} to ${updateData.price}. Notifying ${wishlists.length} users.`);
+
+      for (const w of wishlists) {
+        await createNotificationHelper(
+          w.user,
+          'price_drop',
+          'Price Drop Alert! 📉',
+          `Good news! The price for "${updatedProperty.title}" has dropped to BDT ${updatedProperty.price.toLocaleString()}.`,
+          `/properties/${updatedProperty.slug}`
+        );
+      }
     }
 
     return ApiResponse.success(res, 'Property updated successfully', { property: updatedProperty });

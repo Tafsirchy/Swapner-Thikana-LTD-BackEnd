@@ -2,6 +2,7 @@ const { SavedSearches } = require('../models/SavedSearch');
 const { getDB } = require('../config/db');
 const { sendNewMatchEmail } = require('./emailSender');
 const { ObjectId } = require('mongodb');
+const { createNotificationHelper } = require('../controllers/notification.controller');
 
 /**
  * Check if a property matches a saved search's criteria
@@ -62,8 +63,19 @@ const handleNewProperty = async (property) => {
         const user = await getDB().collection('users').findOne({ _id: search.user });
         if (user && user.email) {
           console.log(`✉️ Sending instant match alert to: ${user.email} for search: ${search.name}`);
+          
+          // 1. Send Email
           await sendNewMatchEmail(user, property, search);
           
+          // 2. Send Bell Notification
+          await createNotificationHelper(
+            user._id,
+            'saved_search_match',
+            'New Property Match',
+            `A new property matches your search "${search.name}": ${property.title}`,
+            `/properties/${property.slug}`
+          );
+
           // Update lastAlertSent
           await SavedSearches().updateOne(
             { _id: search._id },

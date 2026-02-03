@@ -239,7 +239,57 @@ const addLeadNote = async (req, res, next) => {
       return ApiResponse.error(res, 'Lead not found', 404);
     }
 
+    // Notify Agent if Admin/Management added the note
+    if ((req.user.role === 'admin' || req.user.role === 'management') && lead.agent && lead.agent.toString() !== req.user._id.toString()) {
+       await createNotificationHelper(
+        lead.agent,
+        'lead_note',
+        'New Note on Lead',
+        `${req.user.name} added a note to lead: ${lead.name}`,
+        `/dashboard/leads/${leadId}`
+      );
+    }
+
     return ApiResponse.success(res, 'Note added successfully', { note });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const assignLead = async (req, res, next) => {
+  try {
+    const { agentId } = req.body;
+    const leadId = new ObjectId(req.params.id);
+
+    if (!agentId) {
+      return ApiResponse.error(res, 'Agent ID is required', 400);
+    }
+
+    const lead = await Leads().findOne({ _id: leadId });
+    if (!lead) {
+      return ApiResponse.error(res, 'Lead not found', 404);
+    }
+
+    // Role check: Only admin/management can assign leads
+    if (req.user.role !== 'admin' && req.user.role !== 'management') {
+      return ApiResponse.error(res, 'Not authorized to assign leads', 403);
+    }
+
+    await Leads().updateOne(
+      { _id: leadId },
+      { $set: { agent: new ObjectId(agentId), updatedAt: new Date() } }
+    );
+
+    // Notify the Agent
+    await createNotificationHelper(
+      new ObjectId(agentId),
+      'lead_assigned',
+      'New Lead Assigned',
+      `You have been assigned a new lead: ${lead.name}`,
+      `/dashboard/leads/${leadId}`
+    );
+
+    return ApiResponse.success(res, 'Lead assigned successfully');
   } catch (error) {
     next(error);
   }
@@ -277,5 +327,6 @@ module.exports = {
   updateLeadStatus,
   getMyInquiries,
   addLeadNote,
-  deleteLead
+  deleteLead,
+  assignLead
 };

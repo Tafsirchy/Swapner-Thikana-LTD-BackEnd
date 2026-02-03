@@ -30,6 +30,11 @@ router.patch('/:id/status', protect, authorize('agent', 'admin', 'management'), 
 // @access  Private (Agent/Admin)
 router.post('/:id/notes', protect, authorize('agent', 'admin', 'management'), leadController.addLeadNote);
 
+// @route   PATCH /api/leads/:id/assign
+// @desc    Assign lead to agent
+// @access  Private (Admin/Management)
+router.patch('/:id/assign', protect, authorize('admin', 'management'), leadController.assignLead);
+
 // @route   DELETE /api/leads/:id
 // @desc    Delete a lead
 // @access  Private (Agent/Admin)
