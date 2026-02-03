@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authController = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
+const { authLimiter, verifyEmailLimiter, resendLimiter } = require('../middlewares/rateLimit.middleware');
 const passport = require('passport');
 
 const { validate } = require('../middlewares/validation.middleware');
@@ -17,22 +18,27 @@ const {
 // @route   POST /api/auth/register
 // @desc    Register new user
 // @access  Public
-router.post('/register', registerValidator, validate, authController.register);
+router.post('/register', authLimiter, registerValidator, validate, authController.register);
 
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', loginValidator, validate, authController.login);
+router.post('/login', authLimiter, loginValidator, validate, authController.login);
 
 // @route   POST /api/auth/verify-email
 // @desc    Verify email address
 // @access  Public
-router.post('/verify-email', authController.verifyEmail);
+router.post('/verify-email', verifyEmailLimiter, authController.verifyEmail);
+
+// @route   POST /api/auth/resend-verification
+// @desc    Resend verification email
+// @access  Public
+router.post('/resend-verification', resendLimiter, emailValidator, validate, authController.resendVerification);
 
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset
 // @access  Public
-router.post('/forgot-password', emailValidator, validate, authController.forgotPassword);
+router.post('/forgot-password', authLimiter, emailValidator, validate, authController.forgotPassword);
 
 // @route   POST /api/auth/reset-password
 // @desc    Reset password with token

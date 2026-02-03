@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { Users } = require('../models/User');
+const { PendingUsers } = require('../models/PendingUser');
 const { generateToken } = require('../utils/jwt');
 const ApiResponse = require('../utils/apiResponse');
 const sendEmail = require('../config/email');
@@ -28,7 +29,7 @@ const register = async (req, res, next) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    // 1. Check if user already exists
+    // 1. Check if user already exists in MAIN collection
     const existingUser = await Users().findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return ApiResponse.error(res, 'User with this email already exists', 400);
@@ -38,54 +39,53 @@ const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Create verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    // 3. Create verification token (Securely hashed)
+    // Generate random token for URL
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    // Hash token for database storage
+    const verificationTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
 
-    // 4. Create user object
-    const newUser = {
+    // 4. Create pending user object
+    // Delete old pending request for this email if exists, then create new
+    
+    await PendingUsers().deleteOne({ email: email.toLowerCase() });
+
+    const newPendingUser = {
       name,
       email: email.toLowerCase(),
-      password: hashedPassword,
+      password: hashedPassword, // Hashed password
       phone,
-      role: 'customer', // Force customer role for self-registration
-      status: 'active',  // Add status field for consistency
-      isActive: true,
-      isVerified: false,
-      verificationToken,
-      savedProperties: [],
-      savedSearches: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      verificationToken: verificationTokenHash,
+      createdAt: new Date() // Manual timestamp for native driver (for TTL)
     };
 
-    // 5. Save to database
-    const result = await Users().insertOne(newUser);
+    // 5. Save to PendingUsers collection
+    await PendingUsers().insertOne(newPendingUser);
     
-    // 6. Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken}`;
+    // 6. Send verification email (Send RAW token)
+    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${rawToken}`;
     
+    let emailSent = true;
     try {
       await sendEmail({
-        email: newUser.email,
+        email: newPendingUser.email,
         subject: 'Verify Your shwapner Thikana Account',
-        html: getEmailVerificationTemplate(newUser.name, verificationUrl),
+        html: getEmailVerificationTemplate(newPendingUser.name, verificationUrl),
       });
+      console.log('[REGISTER] Verification email sent to:', newPendingUser.email);
     } catch (emailError) {
-      console.error('Email could not be sent:', emailError);
-      // We still registered the user, but verification email failed
+      console.error('[REGISTER] Email could not be sent:', emailError);
+      emailSent = false;
     }
 
-    const user = { ...newUser, _id: result.insertedId };
-    delete user.password;
-    delete user.verificationToken;
+    const message = emailSent 
+      ? 'Registration successful. Please check your email to verify your account.'
+      : 'Registration successful, but we could not send the verification email. Please use the resend option.';
 
-    // Generate token and set cookie
-    const token = generateToken(user._id);
-    setTokenCookie(res, token);
-
-    return ApiResponse.success(res, 'Registration successful. Please check your email to verify your account.', {
-      user,
-      token, // Still returning for compatibility while transition occurs
+    // Do NOT return the user object (security best practice)
+    return ApiResponse.success(res, message, {
+      email: newPendingUser.email,
+      emailSent,
     }, 201);
   } catch (error) {
     next(error);
@@ -93,35 +93,66 @@ const register = async (req, res, next) => {
 };
 
 /**
- * @desc    Verify email
+ * @desc    Verify email (Step 2: Move from PendingUsers to Users)
  * @route   POST /api/auth/verify-email
  * @access  Public
  */
 const verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.body;
-
+    
     if (!token) {
       return ApiResponse.error(res, 'Verification token is required', 400);
     }
 
-    // 1. Find user with this token
-    const user = await Users().findOne({ verificationToken: token });
-    if (!user) {
-      return ApiResponse.error(res, 'Invalid or expired verification token', 400);
+    // Hash the incoming token to match database
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // 1. Find and retrieve data from PendingUsers
+    // We maintain 'atomic' behavior by ensuring we have the data before deleting,
+    // and ideally using a transaction, but for single-node Mongo logic:
+    // FindAndDelete ensures we get the document and remove it so it can't be used again.
+    const pendingUser = await PendingUsers().findOneAndDelete({ 
+      verificationToken: hashedToken 
+    });
+
+    if (!pendingUser) {
+      // Token invalid or expired (TTL removed it)
+      // Check if user is already verified in main collection to give better error
+      // Since we don't have the email from the token (hash), we can't easily check 'isVerified' 
+      // unless we assume the token *might* be valid but just not found.
+      // So generic error is safest.
+      return ApiResponse.error(res, 'Invalid or expired verification link. Please register again.', 400);
     }
 
-    // 2. Update user status
-    await Users().updateOne(
-      { _id: user._id },
-      { 
-        $set: { isVerified: true },
-        $unset: { verificationToken: "" }
-      }
-    );
+    // 2. Prepare User object
+    const newUser = {
+      name: pendingUser.name,
+      email: pendingUser.email,
+      password: pendingUser.password, // Already hashed
+      phone: pendingUser.phone,
+      role: 'customer',
+      status: 'active',
+      isActive: true,
+      isVerified: true, // Auto-verified!
+      // No verificationToken needed in User collection
+      savedProperties: [],
+      savedSearches: [],
+      createdAt: new Date(), // Reset created date to verification time? Or keep original? Let's use new.
+      updatedAt: new Date(),
+    };
 
-    return ApiResponse.success(res, 'Email verified successfully. You can now login.');
+    // 3. Create User in main collection
+    // Note: If this fails (e.g. DB error), data is lost from PendingUsers. 
+    // In production cluster with replica set, use a Transaction.
+    // For now, we assume success or user has to register again (which is safe fail-state).
+    await Users().insertOne(newUser);
+    
+    console.log('[VERIFY EMAIL] User verified and moved to main collection:', newUser.email);
+
+    return ApiResponse.success(res, 'Email verified successfully. Registration complete. You can now login.');
   } catch (error) {
+    console.error('[VERIFY EMAIL] Error:', error);
     next(error);
   }
 };
@@ -147,7 +178,12 @@ const login = async (req, res, next) => {
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
 
-    // 3. Check if active
+    // 3. Check if verified
+    if (!user.isVerified) {
+      return ApiResponse.error(res, 'Please verify your email address before logging in.', 403);
+    }
+
+    // 4. Check if active
     if (!user.isActive) {
       return ApiResponse.error(res, 'Account is deactivated', 403);
     }
@@ -369,6 +405,78 @@ const googleCallback = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Resend verification email
+ * @route   POST /api/auth/resend-verification
+ * @access  Public
+ */
+const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return ApiResponse.error(res, 'Email is required', 400);
+    }
+    
+    const normalizedEmail = email.toLowerCase();
+
+    // 1. Check if user is already fully registered (Verified)
+    const existingUser = await Users().findOne({ email: normalizedEmail });
+    if (existingUser) {
+      console.log('[RESEND] User already exists in main DB:', normalizedEmail);
+      // Already fully registered and verified (since we only save verified users now)
+      return ApiResponse.error(res, 'This account is already registered and verified. Please login.', 400);
+    }
+
+    // 2. Find in PendingUsers
+    const pendingUser = await PendingUsers().findOne({ email: normalizedEmail });
+    
+    if (!pendingUser) {
+       // Not in pending either.
+       // For security, don't reveal if user exists.
+       console.log('[RESEND] Email not found in PendingUsers:', normalizedEmail);
+       return ApiResponse.success(res, 'If a pending registration exists, a new verification link has been sent.');
+    }
+
+    // 3. Generate new token with 24-hour expiration (Securely hashed)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    // 4. Update PendingUser record
+    // This resets the TTL as well because we validate against createdAt? 
+    // Actually Mongoose TTL relies on 'createdAt' field. 
+    // To refresh the TTL, we should update 'createdAt' to now.
+    await PendingUsers().updateOne(
+      { _id: pendingUser._id },
+      { 
+        $set: { 
+          verificationToken: verificationTokenHash, 
+          createdAt: new Date() // Reset TTL to 24h from now
+        } 
+      }
+    );
+
+    // 5. Send email (Send RAW token)
+    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${rawToken}`;
+    
+    try {
+      await sendEmail({
+        email: pendingUser.email,
+        subject: 'Verify Your shwapner Thikana Account',
+        html: getEmailVerificationTemplate(pendingUser.name, verificationUrl),
+      });
+      console.log('[RESEND] Verification email sent to:', pendingUser.email);
+    } catch (emailError) {
+      console.error('[RESEND] Email could not be sent:', emailError);
+      return ApiResponse.error(res, 'Email could not be sent', 500);
+    }
+
+    return ApiResponse.success(res, 'Verification link sent to email');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -378,5 +486,6 @@ module.exports = {
   getMe,
   changePassword,
   logout,
-  googleCallback
+  googleCallback,
+  resendVerification
 };

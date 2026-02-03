@@ -13,11 +13,17 @@ class ApiResponse {
    * Success response
    */
   static success(res, message, data = null, statusCode = 200) {
-    return res.status(statusCode).json({
+    const response = {
       success: true,
       message,
-      data,
-    });
+    };
+    
+    // Only add data field if data is provided and not null
+    if (data !== null && data !== undefined) {
+      response.data = data;
+    }
+    
+    return res.status(statusCode).json(response);
   }
 
   /**
