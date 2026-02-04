@@ -1,5 +1,6 @@
 const { Leads } = require('../models/Lead');
 const { Properties } = require('../models/Property');
+const { Projects } = require('../models/Project');
 const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
 const { createNotificationHelper } = require('./notification.controller');
@@ -43,10 +44,10 @@ const createLead = async (req, res, next) => {
       email,
       phone,
       message: message || '',
-      subject: subject || (itemType === 'general' ? 'General Inquiry' : `Inquiry for ${itemType}`),
-      targetId: propertyId ? new ObjectId(propertyId) : null,
+      subject: subject || (targetItem ? `Inquiry for ${itemType}: ${targetItem.title}` : 'General Inquiry'),
+      targetId: targetItem ? new ObjectId(propertyId) : null,
       agent: targetItem?.agent ? new ObjectId(targetItem.agent) : null,
-      interestType: itemType,
+      interestType: targetItem ? itemType : 'general',
       status: 'new',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -56,16 +57,15 @@ const createLead = async (req, res, next) => {
     const createdLead = { ...lead, _id: result.insertedId };
 
     // Send confirmation email to user (async)
-    try {
-      if (itemType === 'property' || itemType === 'project') {
-        await sendInquiryConfirmationEmail(createdLead, targetItem);
-      } else {
-        // For general inquiries, maybe a simpler email or same with no property
-        await sendInquiryConfirmationEmail(createdLead, null);
-      }
-    } catch (emailError) {
+    // Send confirmation email to user (non-blocking/fire-and-forget)
+    // We don't await this so the UI gets an immediate response
+    const emailPromise = (itemType === 'property' || itemType === 'project')
+      ? sendInquiryConfirmationEmail(createdLead, targetItem)
+      : sendInquiryConfirmationEmail(createdLead, null);
+
+    emailPromise.catch(emailError => {
       console.error('Failed to send inquiry confirmation email:', emailError);
-    }
+    });
 
     // Create notification for agent if exists
     if (targetItem?.agent) {

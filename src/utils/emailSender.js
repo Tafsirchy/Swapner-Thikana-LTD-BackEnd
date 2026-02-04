@@ -6,7 +6,7 @@ const path = require('path');
 const createTransporter = () => {
   // For development: Use Gmail
   // For production: Use SendGrid, Mailgun, or AWS SES
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER || 'your-email@gmail.com',
