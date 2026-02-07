@@ -91,13 +91,30 @@ const getAgentReviews = async (req, res, next) => {
  */
 const getAllReviewsAdmin = async (req, res, next) => {
   try {
-    const { status } = req.query;
+    const { status, page = 1, limit = 10 } = req.query;
     const query = {};
     if (status) query.status = status;
 
-    const reviews = await Reviews().find(query).sort({ createdAt: -1 }).toArray();
+    const skip = (Number(page) - 1) * Number(limit);
 
-    return ApiResponse.success(res, 'All reviews fetched for admin', { reviews });
+    const reviews = await Reviews()
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .toArray();
+
+    const total = await Reviews().countDocuments(query);
+
+    return ApiResponse.success(res, 'All reviews fetched for admin', { 
+      reviews,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }

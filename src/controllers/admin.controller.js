@@ -226,7 +226,7 @@ const { getSortObject } = require('../utils/queryHelpers');
  */
 const getAllProperties = async (req, res, next) => {
   try {
-    const { status, search, featured, sort } = req.query;
+    const { status, search, featured, sort, page = 1, limit = 10 } = req.query;
     const query = {};
 
     if (status && status !== 'all') query.status = status;
@@ -240,9 +240,9 @@ const getAllProperties = async (req, res, next) => {
     }
 
     const sortObj = getSortObject(sort);
+    const skip = (Number(page) - 1) * Number(limit);
 
     console.log('[DEBUG] admin.getAllProperties Query:', JSON.stringify(query, null, 2));
-    console.log('[DEBUG] admin.getAllProperties Sort:', JSON.stringify(sortObj, null, 2));
 
     const properties = await Properties()
       .aggregate([
@@ -268,11 +268,23 @@ const getAllProperties = async (req, res, next) => {
             'agent.email': { $arrayElemAt: ['$agentDetails.email', 0] }
           }
         },
-        { $sort: sortObj }
+        { $sort: sortObj },
+        { $skip: skip },
+        { $limit: Number(limit) }
       ])
       .toArray();
 
-    return ApiResponse.success(res, 'Properties fetched successfully', { properties });
+    const total = await Properties().countDocuments(query);
+
+    return ApiResponse.success(res, 'Properties fetched successfully', { 
+      properties,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }

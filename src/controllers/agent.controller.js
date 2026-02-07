@@ -9,12 +9,37 @@ const { ObjectId } = require('mongodb');
  */
 const getAllAgents = async (req, res, next) => {
   try {
+    const { page = 1, limit = 10, search } = req.query;
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { specialty: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
     const agents = await Agents()
-      .find({})
+      .find(query)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
       .toArray();
 
-    return ApiResponse.success(res, 'Agents fetched', { agents });
+    const total = await Agents().countDocuments(query);
+
+    return ApiResponse.success(res, 'Agents fetched', { 
+      agents,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }

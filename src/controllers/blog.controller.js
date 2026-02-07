@@ -23,10 +23,23 @@ const getBlogs = async (req, res, next) => {
       limit = 10, 
       category,
       tag,
-      search 
+      search,
+      status 
     } = req.query;
 
-    const query = { isPublished: true };
+    const query = {};
+    
+    // Status handling for Admin vs Public
+    if (status === 'draft') {
+      query.isPublished = false;
+    } else if (status === 'published') {
+      query.isPublished = true;
+    } else if (status === 'all') {
+      // No filter on isPublished
+    } else {
+      // Default public behavior
+      query.isPublished = true;
+    }
     
     if (category) query.category = category;
     if (tag) query.tags = tag;
@@ -34,7 +47,8 @@ const getBlogs = async (req, res, next) => {
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } }
+        { excerpt: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
       ];
     }
 

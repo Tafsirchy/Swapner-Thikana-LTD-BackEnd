@@ -9,12 +9,37 @@ const { ObjectId } = require('mongodb');
  */
 const getAllManagement = async (req, res, next) => {
   try {
+    const { page = 1, limit = 10, search } = req.query;
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { role: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
     const members = await Management()
-      .find({})
+      .find(query)
       .sort({ order: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
       .toArray();
 
-    return ApiResponse.success(res, 'Management members fetched', { members });
+    const total = await Management().countDocuments(query);
+
+    return ApiResponse.success(res, 'Management members fetched', { 
+      members,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }
