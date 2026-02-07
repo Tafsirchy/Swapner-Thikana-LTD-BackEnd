@@ -61,6 +61,7 @@ const getProjects = async (req, res, next) => {
       availableOnly,
       parking,
       search,
+      homeFeatured,
       sort
     } = req.query;
 
@@ -80,6 +81,11 @@ const getProjects = async (req, res, next) => {
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
+    }
+    
+    // 3.5. Home Featured Filter
+    if (homeFeatured === 'true') {
+      query.isHomeFeatured = true;
     }
 
     // 4. Numeric Range Filters

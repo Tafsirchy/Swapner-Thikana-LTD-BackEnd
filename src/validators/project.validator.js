@@ -50,6 +50,7 @@ const createProjectValidator = [
   body('contact').optional().isObject(),
   body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
   body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
+  body('isHomeFeatured').optional().isBoolean().withMessage('isHomeFeatured must be a boolean'),
 
   body('features')
     .optional()
@@ -96,6 +97,7 @@ const updateProjectValidator = [
   body('contact').optional().isObject(),
   body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
   body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
+  body('isHomeFeatured').optional().isBoolean().withMessage('isHomeFeatured must be a boolean'),
   body('features').optional().isArray(),
     
   // Prevent mass assignment
