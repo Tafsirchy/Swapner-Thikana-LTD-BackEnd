@@ -15,8 +15,8 @@ app.use(passport.initialize());
 
 // DEBUG: Request Inspector
 app.use((req, res, next) => {
+  console.log(`[DEBUG] Request: ${req.method} ${req.url} (Original: ${req.originalUrl})`);
   if (req.url.includes('/api/auth') || req.url.includes('/api/notifications')) {
-    console.log(`\n[DEBUG] Request: ${req.method} ${req.url}`);
     console.log(`[DEBUG] Origin: ${req.headers.origin}`);
     console.log(`[DEBUG] Cookie Header: ${req.headers.cookie ? 'Present' : 'Missing'}`);
     if (req.headers.cookie) {
@@ -69,12 +69,16 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
+const regionRoutes = require('./routes/region.routes');
+const masterPlanRoutes = require('./routes/masterPlan.routes');
+
+app.use('/api/regions', regionRoutes);
+app.use('/api/master-plan', masterPlanRoutes);
+
 app.use('/api/public', require('./routes/public.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/properties', require('./routes/property.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
-app.use('/api/regions', require('./routes/region.routes'));
-app.use('/api/master-plan', require('./routes/masterPlan.routes'));
 app.use('/api/leads', require('./routes/lead.routes'));
 app.use('/api/blogs', require('./routes/blog.routes'));
 app.use('/api/users', require('./routes/user.routes'));
