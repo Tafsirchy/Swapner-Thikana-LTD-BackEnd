@@ -5,11 +5,6 @@ const regionProjectController = require('../controllers/regionProject.controller
 const { protect } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
-// @route   GET /api/regions/:regionId/projects
-// @desc    Get projects for a specific region
-// @access  Public
-router.get('/regions/:regionId/projects', regionProjectController.getRegionProjects);
-
 // @route   GET /api/master-plan/projects
 // @desc    Get all projects across all regions
 // @access  Public
