@@ -73,6 +73,8 @@ app.use('/api/public', require('./routes/public.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/properties', require('./routes/property.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
+app.use('/api/regions', require('./routes/region.routes'));
+app.use('/api', require('./routes/regionProject.routes'));
 app.use('/api/leads', require('./routes/lead.routes'));
 app.use('/api/blogs', require('./routes/blog.routes'));
 app.use('/api/users', require('./routes/user.routes'));

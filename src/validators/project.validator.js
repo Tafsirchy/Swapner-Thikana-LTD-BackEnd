@@ -29,6 +29,28 @@ const createProjectValidator = [
     .trim()
     .isIn(['ongoing', 'completed', 'upcoming']).withMessage('Invalid status'),
 
+  body('landSize').optional().trim(),
+  body('floorConfiguration').optional().trim(),
+  body('totalUnits').optional().trim(),
+  body('unitsPerFloor').optional().trim(),
+  body('facing').optional().trim(),
+  body('roadWidth').optional().trim(),
+  body('surroundings').optional().trim(),
+  body('flatSize').optional().trim(),
+  body('bedroomCount').optional().trim(),
+  body('bathroomCount').optional().trim(),
+  body('balconyCount').optional().trim(),
+  body('unitDetails').optional().isObject(),
+  body('parking').optional().trim(),
+  body('lift').optional().trim(),
+  body('stair').optional().trim(),
+  body('commonFacilities').optional().trim(),
+  body('pricePerSqFt').optional().trim(),
+  body('availableFlats').optional().trim(),
+  body('contact').optional().isObject(),
+  body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
+  body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
+
   body('features')
     .optional()
     .isArray().withMessage('Features must be an array'),
@@ -52,6 +74,29 @@ const updateProjectValidator = [
     .optional()
     .trim()
     .isIn(['ongoing', 'completed', 'upcoming']).withMessage('Invalid status'),
+
+  body('landSize').optional().trim(),
+  body('floorConfiguration').optional().trim(),
+  body('totalUnits').optional().trim(),
+  body('unitsPerFloor').optional().trim(),
+  body('facing').optional().trim(),
+  body('roadWidth').optional().trim(),
+  body('surroundings').optional().trim(),
+  body('flatSize').optional().trim(),
+  body('bedroomCount').optional().trim(),
+  body('bathroomCount').optional().trim(),
+  body('balconyCount').optional().trim(),
+  body('unitDetails').optional().isObject(),
+  body('parking').optional().trim(),
+  body('lift').optional().trim(),
+  body('stair').optional().trim(),
+  body('commonFacilities').optional().trim(),
+  body('pricePerSqFt').optional().trim(),
+  body('availableFlats').optional().trim(),
+  body('contact').optional().isObject(),
+  body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
+  body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
+  body('features').optional().isArray(),
     
   // Prevent mass assignment
   body('slug').not().exists().withMessage('Cannot update slug manually'),
