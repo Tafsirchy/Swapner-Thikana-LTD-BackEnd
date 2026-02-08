@@ -9,10 +9,13 @@ const ApiResponse = require('../utils/apiResponse');
  */
 const createReview = async (req, res, next) => {
   try {
-    const { propertyId, agentId, rating, comment, userName, userEmail } = req.body;
+    const { propertyId, agentId, rating, comment } = req.body;
     
-    // Auth is optional now
-    const userId = req.user?._id;
+    // Auth is now required
+    const userId = req.user._id;
+    const userName = req.user.name;
+    const userEmail = req.user.email;
+    const userPhoto = req.user.photo || null;
 
     if (!rating || rating < 1 || rating > 5) {
       return ApiResponse.error(res, 'Please provide a rating between 1 and 5', 400);

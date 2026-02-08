@@ -21,6 +21,7 @@ router.post('/', protect, upload.single('image'), imgbbUpload, (req, res, next) 
   }
 });
 
+/*
 // @route   POST /api/upload/public
 // @desc    Upload image to ImgBB (Public)
 // @access  Public
@@ -34,5 +35,6 @@ router.post('/public', upload.single('image'), imgbbUpload, (req, res, next) => 
     next(error);
   }
 });
+*/
 
 module.exports = router;

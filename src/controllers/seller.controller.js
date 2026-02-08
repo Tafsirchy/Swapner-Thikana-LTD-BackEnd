@@ -33,7 +33,7 @@ const submitInquiry = async (req, res, next) => {
 
     // Optional: Send email notification to admin here
 
-    return ApiResponse.success(res, 'Inquiry submitted successfully', { inquiry }, 201);
+    return ApiResponse.success(res, 'Inquiry submitted successfully', { inquiryId: result.insertedId }, 201);
   } catch (error) {
     next(error);
   }

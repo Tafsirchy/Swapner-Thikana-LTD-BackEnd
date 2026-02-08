@@ -30,7 +30,13 @@ const getUsers = async (req, res, next) => {
     
     // For specific role queries (like management), exclude sensitive data but keep bio/designation
     // Ensure status is handled correctly
-    const projection = { password: 0 };
+    const projection = { 
+      password: 0, 
+      savedProperties: 0, 
+      recentlyViewed: 0, 
+      fcmTokens: 0,
+      notifications: 0 
+    };
     
     const skip = (Number(page) - 1) * Number(limit);
     
@@ -136,7 +142,15 @@ const getUserById = async (req, res, next) => {
   try {
     const user = await Users().findOne(
       { _id: new ObjectId(req.params.id) },
-      { projection: { password: 0 } }
+      { 
+        projection: { 
+          password: 0, 
+          savedProperties: 0, 
+          recentlyViewed: 0, 
+          fcmTokens: 0,
+          notifications: 0
+        } 
+      }
     );
 
     if (!user) {

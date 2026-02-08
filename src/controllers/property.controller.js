@@ -239,10 +239,18 @@ const getMyProperties = async (req, res, next) => {
 const getPropertyBySlug = async (req, res, next) => {
   try {
     // Build match query: match by slug OR by ID (if slug is a valid ObjectId)
-    const matchQuery = { $or: [{ slug: req.params.slug }] };
+    // AND strictly enforce published status for public view
+    const matchQuery = { 
+      $and: [
+        { status: 'published' },
+        {
+          $or: [{ slug: req.params.slug }]
+        }
+      ]
+    };
     
     if (ObjectId.isValid(req.params.slug)) {
-      matchQuery.$or.push({ _id: new ObjectId(req.params.slug) });
+      matchQuery.$and[1].$or.push({ _id: new ObjectId(req.params.slug) });
     }
 
     console.log(`Fetching property for: ${req.params.slug}`, matchQuery);
@@ -299,8 +307,9 @@ const getPropertyById = async (req, res, next) => {
     const propertyId = new ObjectId(req.params.id);
     
     // Use aggregation to find property and populate agent
+    // Strictly enforce published status for public view
     const results = await Properties().aggregate([
-      { $match: { _id: propertyId } },
+      { $match: { _id: propertyId, status: 'published' } },
       {
         $lookup: {
           from: 'users',

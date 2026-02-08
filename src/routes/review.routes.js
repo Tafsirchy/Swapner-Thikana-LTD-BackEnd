@@ -9,7 +9,7 @@ router.get('/property/:propertyId', reviewController.getPropertyReviews);
 router.get('/agent/:agentId', reviewController.getAgentReviews);
 
 // Routes
-router.post('/', reviewController.createReview); // Anyone can review
+router.post('/', protect, reviewController.createReview); // Authenticated users only
 router.put('/:id', protect, reviewController.updateReview); // Owner only
 router.delete('/:id', protect, reviewController.deleteReview); // Owner or Admin
 

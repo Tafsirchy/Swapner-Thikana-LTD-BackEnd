@@ -48,6 +48,7 @@ const createLead = async (req, res, next) => {
       message: message || '',
       subject: subject || (targetItem ? `Inquiry for ${itemType}: ${targetItem.title}` : 'General Inquiry'),
       targetId: targetItem ? new ObjectId(propertyId) : null,
+      user: req.user ? new ObjectId(req.user._id) : null, // Link to user if logged in
       agent: targetItem?.agent ? new ObjectId(targetItem.agent) : null,
       interestType: targetItem ? itemType : 'general',
       status: 'new',
@@ -174,9 +175,14 @@ const updateLeadStatus = async (req, res, next) => {
  */
 const getMyInquiries = async (req, res, next) => {
   try {
-    // Find leads matching user's email
+    // Find leads matching user's ID or email (for backward compatibility)
     const inquiries = await Leads()
-      .find({ email: req.user.email })
+      .find({ 
+        $or: [
+          { user: new ObjectId(req.user._id) },
+          { email: req.user.email }
+        ]
+      })
       .sort({ createdAt: -1 })
       .toArray();
 

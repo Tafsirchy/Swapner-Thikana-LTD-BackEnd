@@ -21,11 +21,12 @@ const getItemsByIds = async (req, res, next) => {
       return ApiResponse.success(res, 'No valid IDs provided', { items: [] });
     }
 
-    // Fetch from both collections
+    // Fetch from both collections - Strictly enforce published status for public access
     const [properties, projects] = await Promise.all([
-      Properties().find({ _id: { $in: idArray } }).toArray(),
-      Projects().find({ _id: { $in: idArray } }).toArray()
+      Properties().find({ _id: { $in: idArray }, status: 'published' }).toArray(),
+      Projects().find({ _id: { $in: idArray }, status: 'published' }).toArray()
     ]);
+ Riverside
 
     // Combine and mark types
     const items = [

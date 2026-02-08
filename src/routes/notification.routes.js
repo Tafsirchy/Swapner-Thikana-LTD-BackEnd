@@ -12,12 +12,16 @@ const {
 } = require('../controllers/notification.controller');
 
 // All routes require authentication
+const { authorize } = require('../middlewares/role.middleware');
+
+// All routes require authentication
 router.use(protect);
 
-// Get notifications and create new one
-router.route('/')
-  .get(getNotifications)
-  .post(createNotification);
+// Get notifications
+router.get('/', getNotifications);
+
+// Create new notification (Admin & Management only)
+router.post('/', authorize('admin', 'management'), createNotification);
 
 // Mark all as read
 router.put('/read-all', markAllAsRead);

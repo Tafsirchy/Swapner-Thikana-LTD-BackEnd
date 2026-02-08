@@ -62,7 +62,15 @@ const getAllUsers = async (req, res, next) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const users = await Users()
-      .find(query, { projection: { password: 0 } })
+      .find(query, { 
+        projection: { 
+          password: 0, 
+          savedProperties: 0, 
+          recentlyViewed: 0, 
+          fcmTokens: 0,
+          notifications: 0 
+        } 
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
