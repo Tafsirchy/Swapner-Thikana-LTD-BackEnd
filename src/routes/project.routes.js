@@ -40,10 +40,11 @@ router.delete('/:id', protect, authorize('admin', 'management'), projectControll
 
 const upload = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
+const imageOptimization = require('../middlewares/image-optimization.middleware');
 
 // @route   POST /api/projects/:id/images
 // @desc    Upload project images
 // @access  Private/Admin
-router.post('/:id/images', protect, authorize('admin', 'management'), upload.array('images', 20), imgbbUpload, projectController.uploadProjectImages);
+router.post('/:id/images', protect, authorize('admin', 'management'), upload.array('images', 20), imageOptimization, imgbbUpload, projectController.uploadProjectImages);
 
 module.exports = router;

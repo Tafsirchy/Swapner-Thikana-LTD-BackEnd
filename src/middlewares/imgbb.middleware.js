@@ -6,33 +6,44 @@ const { uploadToImgbb } = require('../utils/imgbb');
  */
 const imgbbUpload = async (req, res, next) => {
   try {
+    const uploadSingle = async (file) => {
+      // If image-optimization middleware was used, we have specialized buffers
+      if (file.originalBuffer && file.mediumBuffer && file.thumbnailBuffer) {
+        const [originalUrl, mediumUrl, thumbUrl] = await Promise.all([
+          uploadToImgbb(file.originalBuffer, file.optimizedName || file.originalname),
+          uploadToImgbb(file.mediumBuffer, file.mediumName || `med_${file.originalname}`),
+          uploadToImgbb(file.thumbnailBuffer, file.thumbnailName || `thumb_${file.originalname}`)
+        ]);
+        
+        // Store as object for advanced frontend usage
+        file.path = {
+          original: originalUrl,
+          medium: mediumUrl,
+          thumbnail: thumbUrl,
+          processed: true
+        };
+      } else {
+        // Fallback or if optimization was skipped
+        const url = await uploadToImgbb(file.buffer, file.originalname);
+        file.path = url;
+      }
+    };
+
     // Handle single file
     if (req.file) {
-      const url = await uploadToImgbb(req.file.buffer, req.file.originalname);
-      req.file.path = url; // Overwrite path with ImgBB URL
+      await uploadSingle(req.file);
     }
 
     // Handle multiple files (array)
     if (req.files && Array.isArray(req.files)) {
-      const uploadPromises = req.files.map(async (file) => {
-        const url = await uploadToImgbb(file.buffer, file.originalname);
-        file.path = url;
-        return file;
-      });
-      await Promise.all(uploadPromises);
+      await Promise.all(req.files.map(uploadSingle));
     }
 
     // Handle multiple files (fields)
     if (req.files && !Array.isArray(req.files)) {
       const fields = Object.keys(req.files);
       for (const field of fields) {
-        const files = req.files[field];
-        const uploadPromises = files.map(async (file) => {
-          const url = await uploadToImgbb(file.buffer, file.originalname);
-          file.path = url;
-          return file;
-        });
-        await Promise.all(uploadPromises);
+        await Promise.all(req.files[field].map(uploadSingle));
       }
     }
 

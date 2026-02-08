@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
+const imageOptimization = require('../middlewares/image-optimization.middleware');
 const { protect } = require('../middlewares/auth.middleware');
 const ApiResponse = require('../utils/apiResponse');
 
 // @route   POST /api/upload
 // @desc    Upload generic image to ImgBB
 // @access  Private (Authenticated users only)
-router.post('/', protect, upload.single('image'), imgbbUpload, (req, res, next) => {
+router.post('/', protect, upload.single('image'), imageOptimization, imgbbUpload, (req, res, next) => {
   try {
     if (!req.file || !req.file.path) {
       return ApiResponse.error(res, 'No image uploaded', 400);

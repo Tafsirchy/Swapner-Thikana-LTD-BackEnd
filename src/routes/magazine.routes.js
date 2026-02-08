@@ -11,10 +11,11 @@ router.get('/:slug', magazineController.getMagazineBySlug);
 
 const upload = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
+const imageOptimization = require('../middlewares/image-optimization.middleware');
 
 // Protected routes (Admin only)
-router.post('/', protect, authorize('admin', 'management'), upload.single('image'), imgbbUpload, magazineController.createMagazine);
-router.put('/:id', protect, authorize('admin', 'management'), upload.single('image'), imgbbUpload, magazineController.updateMagazine);
+router.post('/', protect, authorize('admin', 'management'), upload.single('image'), imageOptimization, imgbbUpload, magazineController.createMagazine);
+router.put('/:id', protect, authorize('admin', 'management'), upload.single('image'), imageOptimization, imgbbUpload, magazineController.updateMagazine);
 router.delete('/:id', protect, authorize('admin', 'management'), magazineController.deleteMagazine);
 
 
