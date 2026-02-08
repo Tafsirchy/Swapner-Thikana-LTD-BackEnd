@@ -13,19 +13,6 @@ const passport = require('passport');
 require('./config/passport'); // Load passport configuration
 app.use(passport.initialize());
 
-// DEBUG: Request Inspector
-app.use((req, res, next) => {
-  console.log(`[DEBUG] Request: ${req.method} ${req.url} (Original: ${req.originalUrl})`);
-  if (req.url.includes('/api/auth') || req.url.includes('/api/notifications')) {
-    console.log(`[DEBUG] Origin: ${req.headers.origin}`);
-    console.log(`[DEBUG] Cookie Header: ${req.headers.cookie ? 'Present' : 'Missing'}`);
-    if (req.headers.cookie) {
-      console.log(`[DEBUG] Cookies keys: ${Object.keys(req.cookies || {}).join(', ')}`);
-    }
-  }
-  next();
-});
-
 // Security middleware (configured to allow CORS)
 app.use(helmet({
   crossOriginResourcePolicy: false,
@@ -53,11 +40,9 @@ const morgan = require('morgan');
 app.use(morgan('dev'));
 
 // Rate limiting
-const { apiLimiter, authLimiter } = require('./middlewares/rateLimiter');
-app.use('/api/', apiLimiter);
-// authLimiter removed as per user request
+const { apiLimiter } = require('./middlewares/rateLimiter');
+app.use('/api', apiLimiter);
 
-// Health check endpoint
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -100,17 +85,21 @@ apiRouter.use('/upload', require('./routes/upload.routes'));
 apiRouter.use('/seller', require('./routes/seller.routes'));
 apiRouter.use('/history', require('./routes/history.routes'));
 
-// Mount on BOTH /api and / for maximum production compatibility
+// Mount on /api
 app.use('/api', apiRouter);
+
+// Fallback for root (only matches if /api didn't)
 app.use('/', apiRouter);
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
-  console.log(`[404] Resource not found: ${req.url}`);
+  const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   res.status(404).json({
     success: false,
     message: 'API endpoint not found',
     path: req.originalUrl,
+    url: req.url,
+    fullUrl: fullUrl
   });
 });
 

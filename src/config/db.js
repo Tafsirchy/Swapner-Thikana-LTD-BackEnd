@@ -7,7 +7,11 @@ const connectDB = async () => {
   if (db) return db;
 
   try {
-    const uri = process.env.MONGODB_URI;
+    const rawUri = process.env.MONGODB_URI;
+    const uri = typeof rawUri === 'string' 
+      ? rawUri.replace(/[\s\n\r\t]/g, '').trim() 
+      : rawUri;
+      
     if (!uri) {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
