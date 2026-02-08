@@ -2,6 +2,10 @@ const { Projects } = require('../models/Project');
 const ApiResponse = require('../utils/apiResponse');
 const { generateUniqueSlug } = require('../utils/slugify');
 const { ObjectId } = require('mongodb');
+const { Leads } = require('../models/Lead');
+const { Users } = require('../models/User');
+const { Wishlists } = require('../models/Wishlist');
+
 
 /**
  * @desc    Create a new project
@@ -290,7 +294,29 @@ const updateProject = async (req, res, next) => {
 const deleteProject = async (req, res, next) => {
   try {
     const projectId = new ObjectId(req.params.id);
+
+    // 1. Delete associated leads
+    await Leads().deleteMany({ targetId: projectId, interestType: 'project' });
+
+    // 2. Remove from user profile saved items and recently viewed
+    await Users().updateMany(
+      {},
+      { 
+        $pull: { 
+          savedProperties: projectId,
+          recentlyViewed: projectId
+        } 
+      }
+    );
+
+    // 3. Remove from specific Wishlist collections
+    await Wishlists().updateMany(
+      { properties: projectId },
+      { $pull: { properties: projectId } }
+    );
+
     const result = await Projects().deleteOne({ _id: projectId });
+
 
     if (result.deletedCount === 0) {
       return ApiResponse.error(res, 'Project not found', 404);

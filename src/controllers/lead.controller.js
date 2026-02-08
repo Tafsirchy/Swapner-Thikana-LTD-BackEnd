@@ -5,6 +5,8 @@ const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
 const { createNotificationHelper } = require('./notification.controller');
 const { sendInquiryConfirmationEmail } = require('../utils/emailSender');
+const { Reminders } = require('../models/Reminder');
+
 
 /**
  * @desc    Create a new lead (inquiry)
@@ -309,7 +311,11 @@ const deleteLead = async (req, res, next) => {
       return ApiResponse.error(res, 'Not authorized to delete this lead', 403);
     }
     
+    // 1. Delete associated reminders
+    await Reminders().deleteMany({ lead: leadId });
+
     const result = await Leads().deleteOne({ _id: leadId });
+
     
     if (result.deletedCount === 0) {
       return ApiResponse.error(res, 'Lead not found', 404);

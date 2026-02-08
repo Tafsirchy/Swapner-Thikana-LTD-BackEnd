@@ -1,6 +1,9 @@
 const { Agents } = require('../models/Agent');
 const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
+const { Properties } = require('../models/Property');
+const { Leads } = require('../models/Lead');
+
 
 /**
  * @desc    Get all agents
@@ -127,8 +130,22 @@ const updateAgent = async (req, res, next) => {
  */
 const deleteAgent = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await Agents().deleteOne({ _id: new ObjectId(id) });
+    const agentId = new ObjectId(id);
+
+    // 1. Unlink from properties (set agent to null)
+    await Properties().updateMany(
+      { agent: agentId },
+      { $set: { agent: null, updatedAt: new Date() } }
+    );
+
+    // 2. Unlink from leads (set agent to null)
+    await Leads().updateMany(
+      { agent: agentId },
+      { $set: { agent: null, updatedAt: new Date() } }
+    );
+
+    const result = await Agents().deleteOne({ _id: agentId });
+
 
     if (result.deletedCount === 0) {
       return ApiResponse.error(res, 'Agent not found', 404);

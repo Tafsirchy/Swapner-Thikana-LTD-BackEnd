@@ -2,6 +2,9 @@ const { Agencies } = require('../models/Agency');
 const ApiResponse = require('../utils/apiResponse');
 const { generateUniqueSlug } = require('../utils/slugify');
 const { ObjectId } = require('mongodb');
+const { Agents } = require('../models/Agent');
+const { Properties } = require('../models/Property');
+
 
 /**
  * @desc    Get all agencies
@@ -146,7 +149,21 @@ const updateAgency = async (req, res, next) => {
 const deleteAgency = async (req, res, next) => {
   try {
     const agencyId = new ObjectId(req.params.id);
+
+    // 1. Unlink from agents (set agency to null)
+    await Agents().updateMany(
+      { agency: agencyId },
+      { $set: { agency: null, updatedAt: new Date() } }
+    );
+
+    // 2. Unlink from properties (set agency to null)
+    await Properties().updateMany(
+      { agency: agencyId },
+      { $set: { agency: null, updatedAt: new Date() } }
+    );
+
     const result = await Agencies().deleteOne({ _id: agencyId });
+
 
     if (result.deletedCount === 0) {
       return ApiResponse.error(res, 'Agency not found', 404);

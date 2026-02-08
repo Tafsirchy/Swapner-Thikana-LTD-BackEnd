@@ -5,6 +5,10 @@ const { ObjectId } = require('mongodb');
 const { handleNewProperty } = require('../utils/alertService');
 const { createNotificationHelper } = require('./notification.controller');
 const { Wishlists } = require('../models/Wishlist');
+const { Reviews } = require('../models/Review');
+const { Leads } = require('../models/Lead');
+const { Users } = require('../models/User');
+
 
 /**
  * @desc    Create a new property
@@ -430,7 +434,31 @@ const deleteProperty = async (req, res, next) => {
       return ApiResponse.error(res, 'Not authorized to delete this property', 403);
     }
 
+    // 1. Delete associated reviews
+    await Reviews().deleteMany({ propertyId });
+
+    // 2. Delete associated leads
+    await Leads().deleteMany({ targetId: propertyId, interestType: 'property' });
+
+    // 3. Remove from user profile saved items and recently viewed
+    await Users().updateMany(
+      {},
+      { 
+        $pull: { 
+          savedProperties: propertyId,
+          recentlyViewed: propertyId
+        } 
+      }
+    );
+
+    // 4. Remove from specific Wishlist collections
+    await Wishlists().updateMany(
+      { properties: propertyId },
+      { $pull: { properties: propertyId } }
+    );
+
     await Properties().deleteOne({ _id: propertyId });
+
 
     return ApiResponse.success(res, 'Property deleted successfully');
   } catch (error) {

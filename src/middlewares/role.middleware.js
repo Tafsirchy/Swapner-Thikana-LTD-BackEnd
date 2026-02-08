@@ -11,6 +11,7 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
+      console.warn(`[AUTH] 403 Access Denied: User role '${req.user.role}' tried to access route restricted to [${roles.join(', ')}]`);
       return ApiResponse.error(
         res,
         `User role '${req.user.role}' is not authorized to access this route`,
