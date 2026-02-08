@@ -206,3 +206,14 @@ Private - © 2026 shwapner Thikana Ltd
 ---
 
 **Frontend Repository**: [shwapner-Thikana-LTD-FrontEnd](https://github.com/Tafsirchy/shwapner-Thikana-LTD-FrontEnd)
+
+## 🖼️ Image Upload Guidelines
+
+To maintain performance and storage efficiency, the following standards are enforced for all media uploads:
+
+- **Max File Size**: **5 MB** per file (Backend enforced).
+- **Max Resolution**: Originals are resized to **2000px width** max.
+- **Formats**:
+    - **Original**: Converted to `AVIF` (Quality: 65).
+    - **Medium**: Generated at `800px` width (WebP).
+    - **Thumbnail**: Generated at `400x400` (WebP).

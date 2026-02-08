@@ -27,7 +27,7 @@ const uploadToImgbb = async (buffer, filename) => {
     });
 
     if (response.data && response.data.data && response.data.data.url) {
-      return response.data.data.url;
+      return response.data.data; // Return full object: { id, url, delete_url, ... }
     } else {
       throw new Error('Failed to get URL from ImgBB response');
     }

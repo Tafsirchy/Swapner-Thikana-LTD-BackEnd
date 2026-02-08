@@ -9,7 +9,7 @@ const imgbbUpload = async (req, res, next) => {
     const uploadSingle = async (file) => {
       // If image-optimization middleware was used, we have specialized buffers
       if (file.originalBuffer && file.mediumBuffer && file.thumbnailBuffer) {
-        const [originalUrl, mediumUrl, thumbUrl] = await Promise.all([
+        const [originalData, mediumData, thumbData] = await Promise.all([
           uploadToImgbb(file.originalBuffer, file.optimizedName || file.originalname),
           uploadToImgbb(file.mediumBuffer, file.mediumName || `med_${file.originalname}`),
           uploadToImgbb(file.thumbnailBuffer, file.thumbnailName || `thumb_${file.originalname}`)
@@ -17,15 +17,31 @@ const imgbbUpload = async (req, res, next) => {
         
         // Store as object for advanced frontend usage
         file.path = {
-          original: originalUrl,
-          medium: mediumUrl,
-          thumbnail: thumbUrl,
-          processed: true
+          original: originalData.url,
+          medium: mediumData.url,
+          thumbnail: thumbData.url,
+          processed: true,
+          // Store deletion metadata for cleanup
+          delete: {
+            original: originalData.delete_url,
+            medium: mediumData.delete_url,
+            thumbnail: thumbData.delete_url,
+            ids: {
+              original: originalData.id,
+              medium: mediumData.id,
+              thumbnail: thumbData.id
+            }
+          }
         };
       } else {
         // Fallback or if optimization was skipped
-        const url = await uploadToImgbb(file.buffer, file.originalname);
-        file.path = url;
+        const data = await uploadToImgbb(file.buffer, file.originalname);
+        // Structure compatible with SmartImage (src.url) and allowing cleanup
+        file.path = {
+          url: data.url,
+          delete_url: data.delete_url,
+          id: data.id
+        };
       }
     };
 

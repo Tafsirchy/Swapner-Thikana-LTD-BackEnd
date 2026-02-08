@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const { Leads } = require('../models/Lead');
 const { Users } = require('../models/User');
 const { Wishlists } = require('../models/Wishlist');
+const { deleteImage } = require('../utils/storageCleanup');
 
 
 /**
@@ -163,18 +164,23 @@ const getProjects = async (req, res, next) => {
     
     // 7. Availability
     if (availableOnly === 'true') {
-        // Broad check for both string "Sold" text AND numeric 0
+        const unavailableRegex = /sold|out|none|reserved|booked|0/i;
+        
         query.$or = [
-            { availableFlats: { $not: { $regex: /sold out|none|0/i }, $ne: null } },
-            // If field is numeric 0, $not regex might behave oddly, so we check > 0 if it was numeric
-            // Safest for mixed data:
-            { availableFlatsNum: { $gt: 0 } } 
+            // Case 1: Text field exists and does NOT contain unavailable keywords
+            { 
+              availableFlats: { 
+                $not: { $regex: unavailableRegex }, 
+                $ne: null,
+                $exists: true
+              } 
+            },
+            // Case 2: Numeric field exists and is greater than 0
+            { availableFlatsNum: { $gt: 0 } }
         ];
         
-        // Clean up if we didn't add the Num field check yet (safe fallbacks)
-        // For now, simplified:
-        delete query.$or; // Logic below overrides for simple regex
-        query.availableFlats = { $not: { $regex: /sold out|none/i }, $ne: null };
+        // Ensure we don't return documents where BOTH are missing/invalid if that's the intent, 
+        // but $or usually handles "at least one matches".
     }
     
     if (parking === 'true') {
@@ -314,6 +320,14 @@ const deleteProject = async (req, res, next) => {
       { properties: projectId },
       { $pull: { properties: projectId } }
     );
+
+    // 4. Cleanup Images
+    const project = await Projects().findOne({ _id: projectId });
+    if (project && project.images && Array.isArray(project.images)) {
+      project.images.forEach(img => {
+        deleteImage(img).catch(err => console.error(err));
+      });
+    }
 
     const result = await Projects().deleteOne({ _id: projectId });
 

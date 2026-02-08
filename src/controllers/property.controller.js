@@ -8,6 +8,7 @@ const { Wishlists } = require('../models/Wishlist');
 const { Reviews } = require('../models/Review');
 const { Leads } = require('../models/Lead');
 const { Users } = require('../models/User');
+const { deleteImage } = require('../utils/storageCleanup');
 
 
 /**
@@ -100,7 +101,7 @@ const getProperties = async (req, res, next) => {
         andConditions.push({ 'coordinates.lat': { $gte: Math.min(...lats), $lte: Math.max(...lats) } });
         andConditions.push({ 'coordinates.lng': { $gte: Math.min(...lngs), $lte: Math.max(...lngs) } });
       } catch (e) {
-        console.error('Invalid polygon format');
+        return ApiResponse.error(res, 'Invalid polygon format', 400);
       }
     }
 
@@ -465,6 +466,13 @@ const deleteProperty = async (req, res, next) => {
       { properties: propertyId },
       { $pull: { properties: propertyId } }
     );
+
+    // 5. Cleanup Images
+    if (property.images && Array.isArray(property.images)) {
+      property.images.forEach(img => {
+        deleteImage(img).catch(err => console.error(err));
+      });
+    }
 
     await Properties().deleteOne({ _id: propertyId });
 
