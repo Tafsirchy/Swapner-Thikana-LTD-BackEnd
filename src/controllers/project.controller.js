@@ -23,6 +23,11 @@ const createProject = async (req, res, next) => {
       status: req.body.status || 'ongoing', // ongoing, completed, upcoming
     };
 
+    // If created by agent, add agentId
+    if (req.user.role === 'agent') {
+      projectData.agent = new ObjectId(req.user._id);
+    }
+
     const result = await Projects().insertOne(projectData);
     const project = { ...projectData, _id: result.insertedId };
 
@@ -67,10 +72,16 @@ const getProjects = async (req, res, next) => {
       parking,
       search,
       homeFeatured,
-      sort
+      sort,
+      agentId // Add agentId filtering
     } = req.query;
 
     const query = {};
+
+    // 0. Agent Filter
+    if (agentId) {
+      query.agent = new ObjectId(agentId);
+    }
 
     // 1. Basic Filters
     if (status && status !== 'all') query.status = status;

@@ -26,17 +26,17 @@ router.get('/slug/:slug', projectController.getProjectBySlug);
 // @route   POST /api/projects
 // @desc    Create a new project
 // @access  Private/Admin
-router.post('/', protect, authorize('admin', 'management'), createProjectValidator, validate, projectController.createProject);
+router.post('/', protect, authorize('admin', 'management', 'agent'), createProjectValidator, validate, projectController.createProject);
 
 // @route   PUT /api/projects/:id
 // @desc    Update project
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin', 'management'), updateProjectValidator, validate, projectController.updateProject);
+router.put('/:id', protect, authorize('admin', 'management', 'agent'), updateProjectValidator, validate, projectController.updateProject);
 
 // @route   DELETE /api/projects/:id
 // @desc    Delete project
 // @access  Private/Admin
-router.delete('/:id', protect, authorize('admin', 'management'), projectController.deleteProject);
+router.delete('/:id', protect, authorize('admin', 'management', 'agent'), projectController.deleteProject);
 
 const upload = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
@@ -45,6 +45,6 @@ const imageOptimization = require('../middlewares/image-optimization.middleware'
 // @route   POST /api/projects/:id/images
 // @desc    Upload project images
 // @access  Private/Admin
-router.post('/:id/images', protect, authorize('admin', 'management'), upload.array('images', 20), imageOptimization, imgbbUpload, projectController.uploadProjectImages);
+router.post('/:id/images', protect, authorize('admin', 'management', 'agent'), upload.array('images', 20), imageOptimization, imgbbUpload, projectController.uploadProjectImages);
 
 module.exports = router;

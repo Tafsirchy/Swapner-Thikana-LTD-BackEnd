@@ -9,14 +9,15 @@ const ApiResponse = require('../utils/apiResponse');
 // @route   POST /api/upload
 // @desc    Upload generic image to ImgBB
 // @access  Private (Authenticated users only)
-router.post('/', protect, upload.single('image'), imageOptimization, imgbbUpload, (req, res, next) => {
+router.post('/', protect, upload.single('image'), imgbbUpload, (req, res, next) => {
   try {
     if (!req.file || !req.file.path) {
       return ApiResponse.error(res, 'No image uploaded', 400);
     }
     
-    // Return the ImgBB URL (which is stored in req.file.path by the middleware)
-    return ApiResponse.success(res, 'Image uploaded successfully', { url: req.file.path }, 201);
+    // Return the ImgBB URL (Handle object or string case)
+    const imageUrl = req.file.path.url || req.file.path;
+    return ApiResponse.success(res, 'Image uploaded successfully', { url: imageUrl }, 201);
   } catch (error) {
     next(error);
   }

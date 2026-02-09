@@ -28,6 +28,8 @@ app.use(cors({
     const allowedOrigins = [
       process.env.FRONTEND_URL,
       'https://shwapner-thikana.vercel.app',
+      'https://www.shwapnerthikana.com',
+      'https://shwapnerthikana.com',
       'http://localhost:3000',
       'http://localhost:3001'
     ].filter(Boolean); // Remove null/undefined if env var is missing

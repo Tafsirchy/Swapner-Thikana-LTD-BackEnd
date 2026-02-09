@@ -1,4 +1,5 @@
 const { Properties } = require('../models/Property');
+const { Projects } = require('../models/Project');
 const { Leads } = require('../models/Lead');
 const { Users } = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
@@ -72,11 +73,13 @@ const getAgentAnalytics = async (req, res, next) => {
   try {
     const agentId = new ObjectId(req.user._id);
 
-    // 1. My Listings Performance
-    const listingsPerformance = await Properties().find({ agent: agentId })
-      .sort({ views: -1 })
-      .project({ title: 1, views: 1, status: 1 })
-      .toArray();
+    // 1. My Listings Performance (Properties + Projects)
+    const [properties, projects] = await Promise.all([
+      Properties().find({ agent: agentId }).project({ title: 1, views: 1, status: 1, type: 'property' }).toArray(),
+      Projects().find({ agent: agentId }).project({ title: 1, views: 1, status: 1, type: 'project' }).toArray()
+    ]);
+
+    const listingsPerformance = [...properties, ...projects].sort((a, b) => (b.views || 0) - (a.views || 0));
 
     // 2. My Lead Conversion
     const leadStats = await Leads().aggregate([
@@ -107,9 +110,17 @@ const getAgentAnalytics = async (req, res, next) => {
       {
         $lookup: {
           from: 'properties',
-          localField: 'property',
+          localField: 'targetId',
           foreignField: '_id',
           as: 'propertyDetails'
+        }
+      },
+      {
+        $lookup: {
+          from: 'projects',
+          localField: 'targetId',
+          foreignField: '_id',
+          as: 'projectDetails'
         }
       },
       {
@@ -119,7 +130,13 @@ const getAgentAnalytics = async (req, res, next) => {
           status: 1,
           createdAt: 1,
           interestType: 1,
-          'property.title': { $arrayElemAt: ['$propertyDetails.title', 0] }
+          'property.title': {
+             $cond: {
+               if: { $eq: ['$interestType', 'property'] },
+               then: { $arrayElemAt: ['$propertyDetails.title', 0] },
+               else: { $arrayElemAt: ['$projectDetails.title', 0] }
+             }
+          }
         }
       }
     ]).toArray();

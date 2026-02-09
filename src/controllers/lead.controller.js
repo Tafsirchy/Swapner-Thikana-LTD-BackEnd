@@ -171,9 +171,9 @@ const updateLeadStatus = async (req, res, next) => {
       return ApiResponse.error(res, 'Lead not found', 404);
     }
 
-    // Role check
-    if (req.user.role === 'agent' && lead.agent?.toString() !== req.user._id.toString()) {
-      return ApiResponse.error(res, 'Not authorized', 403);
+    // Role check: Agents cannot update status
+    if (req.user.role === 'agent') {
+       return ApiResponse.error(res, 'Agents are not authorized to update lead status', 403);
     }
 
     await Leads().updateOne(
@@ -366,9 +366,9 @@ const deleteLead = async (req, res, next) => {
       return ApiResponse.error(res, 'Lead not found', 404);
     }
 
-    // Role check: Only assigned agent or admin
-    if (req.user.role === 'agent' && lead.agent?.toString() !== req.user._id.toString()) {
-      return ApiResponse.error(res, 'Not authorized to delete this lead', 403);
+    // Role check: Agents cannot delete leads
+    if (req.user.role === 'agent') {
+       return ApiResponse.error(res, 'Agents are not authorized to delete leads', 403);
     }
     
     // 1. Delete associated reminders
