@@ -100,28 +100,57 @@ const getLeads = async (req, res, next) => {
       query.agent = new ObjectId(req.user._id);
     }
 
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
     const leads = await Leads()
-      .find(query)
-      .sort({ createdAt: -1 })
+      .aggregate([
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: Number(limit) },
+        {
+          $lookup: {
+            from: 'properties',
+            localField: 'targetId',
+            foreignField: '_id',
+            as: 'propertyInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: 'projects',
+            localField: 'targetId',
+            foreignField: '_id',
+            as: 'projectInfo'
+          }
+        },
+        {
+          $addFields: {
+            propertyName: {
+              $cond: {
+                if: { $eq: ['$interestType', 'property'] },
+                then: { $arrayElemAt: ['$propertyInfo.title', 0] },
+                else: { $arrayElemAt: ['$projectInfo.title', 0] }
+              }
+            }
+          }
+        },
+        { $project: { propertyInfo: 0, projectInfo: 0 } }
+      ])
       .toArray();
 
-    // Populate target titles if missing
-    const enrichedLeads = await Promise.all(leads.map(async (lead) => {
-        if (lead.targetId && !lead.propertyName) {
-            let item = null;
-            if (lead.interestType === 'property') {
-                item = await Properties().findOne({ _id: lead.targetId }, { projection: { title: 1 } });
-            } else if (lead.interestType === 'project') {
-                item = await Projects().findOne({ _id: lead.targetId }, { projection: { title: 1 } });
-            }
-            if (item) {
-                return { ...lead, propertyName: item.title };
-            }
-        }
-        return lead;
-    }));
+    const total = await Leads().countDocuments(query);
 
-    return ApiResponse.success(res, 'Leads fetched', { leads: enrichedLeads });
+    return ApiResponse.success(res, 'Leads fetched', { 
+      leads,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -175,34 +204,59 @@ const updateLeadStatus = async (req, res, next) => {
  */
 const getMyInquiries = async (req, res, next) => {
   try {
-    // Find leads matching user's ID or email (for backward compatibility)
+    const query = { user: new ObjectId(req.user._id) };
+
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
     const inquiries = await Leads()
-      .find({ 
-        $or: [
-          { user: new ObjectId(req.user._id) },
-          { email: req.user.email }
-        ]
-      })
-      .sort({ createdAt: -1 })
+      .aggregate([
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: Number(limit) },
+        {
+          $lookup: {
+            from: 'properties',
+            localField: 'targetId',
+            foreignField: '_id',
+            as: 'propertyInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: 'projects',
+            localField: 'targetId',
+            foreignField: '_id',
+            as: 'projectInfo'
+          }
+        },
+        {
+          $addFields: {
+            propertyName: {
+              $cond: {
+                if: { $eq: ['$interestType', 'property'] },
+                then: { $arrayElemAt: ['$propertyInfo.title', 0] },
+                else: { $arrayElemAt: ['$projectInfo.title', 0] }
+              }
+            }
+          }
+        },
+        { $project: { propertyInfo: 0, projectInfo: 0 } }
+      ])
       .toArray();
 
-    // Populate target titles
-    const enrichedInquiries = await Promise.all(inquiries.map(async (inquiry) => {
-        if (inquiry.targetId && !inquiry.propertyName) {
-            let item = null;
-            if (inquiry.interestType === 'property') {
-                item = await Properties().findOne({ _id: inquiry.targetId }, { projection: { title: 1 } });
-            } else if (inquiry.interestType === 'project') {
-                item = await Projects().findOne({ _id: inquiry.targetId }, { projection: { title: 1 } });
-            }
-            if (item) {
-                return { ...inquiry, propertyName: item.title };
-            }
-        }
-        return inquiry;
-    }));
+    const total = await Leads().countDocuments(query);
 
-    return ApiResponse.success(res, 'My inquiries fetched', { inquiries: enrichedInquiries });
+    return ApiResponse.success(res, 'My inquiries fetched', { 
+      inquiries,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
     next(error);
   }

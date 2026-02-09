@@ -49,7 +49,22 @@ const resendLimiter = rateLimit({
   }
 });
 
+/**
+ * General API rate limiter for all routes
+ * 15 minutes window, 500 requests per IP
+ */
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  legacyHeaders: false,
+  standardHeaders: true,
+  handler: (req, res) => {
+    return ApiResponse.error(res, 'Too many requests. Please try again later.', 429);
+  }
+});
+
 module.exports = {
+  apiLimiter,
   authLimiter,
   verifyEmailLimiter,
   resendLimiter

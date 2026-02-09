@@ -109,20 +109,12 @@ const verifyEmail = async (req, res, next) => {
     // Hash the incoming token to match database
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    // 1. Find and retrieve data from PendingUsers
-    // We maintain 'atomic' behavior by ensuring we have the data before deleting,
-    // and ideally using a transaction, but for single-node Mongo logic:
-    // FindAndDelete ensures we get the document and remove it so it can't be used again.
-    const pendingUser = await PendingUsers().findOneAndDelete({ 
+    // 1. Find data from PendingUsers
+    const pendingUser = await PendingUsers().findOne({ 
       verificationToken: hashedToken 
     });
 
     if (!pendingUser) {
-      // Token invalid or expired (TTL removed it)
-      // Check if user is already verified in main collection to give better error
-      // Since we don't have the email from the token (hash), we can't easily check 'isVerified' 
-      // unless we assume the token *might* be valid but just not found.
-      // So generic error is safest.
       return ApiResponse.error(res, 'Invalid or expired verification link. Please register again.', 400);
     }
 
@@ -136,25 +128,23 @@ const verifyEmail = async (req, res, next) => {
       status: 'active',
       isActive: true,
       isVerified: true, // Auto-verified!
-      // No verificationToken needed in User collection
       savedProperties: [],
       savedSearches: [],
-      createdAt: new Date(), // Reset created date to verification time? Or keep original? Let's use new.
+      createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // 3. Create User in main collection
-    // Note: If this fails (e.g. DB error), data is lost from PendingUsers. 
-    // In production cluster with replica set, use a Transaction.
-    // For now, we assume success or user has to register again (which is safe fail-state).
+    // 3. Create User in main collection FIRST
     await Users().insertOne(newUser);
     
-    // 4. Send Welcome Email (Async)
+    // 4. Delete from PendingUsers ONLY after successful insertion
+    await PendingUsers().deleteOne({ _id: pendingUser._id });
+    
+    // 5. Send Welcome Email (Async)
     try {
       await sendWelcomeEmail(newUser);
     } catch (msgError) {
       console.error('[VERIFY EMAIL] Failed to send welcome email:', msgError);
-      // Don't block flow
     }
 
     console.log('[VERIFY EMAIL] User verified and moved to main collection:', newUser.email);
@@ -326,7 +316,15 @@ const resetPassword = async (req, res, next) => {
 const getMe = async (req, res, next) => {
   try {
     // req.user is already populated by auth middleware
-    return ApiResponse.success(res, 'User profile fetched', { user: req.user });
+    const userProfile = { ...req.user };
+    
+    // Sanitize sensitive metadata
+    delete userProfile.resetPasswordToken;
+    delete userProfile.resetPasswordExpires;
+    delete userProfile.verificationToken;
+    delete userProfile.password;
+
+    return ApiResponse.success(res, 'User profile fetched', { user: userProfile });
   } catch (error) {
     next(error);
   }

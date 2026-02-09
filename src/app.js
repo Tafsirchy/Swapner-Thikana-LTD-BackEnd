@@ -23,8 +23,21 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    // In development, allow any origin. In production, be more strict.
-    return callback(null, true);
+    
+    // Whitelist for production and local development
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'https://shwapner-thikana.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ].filter(Boolean); // Remove null/undefined if env var is missing
+
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejected request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -40,7 +53,7 @@ const morgan = require('morgan');
 app.use(morgan('dev'));
 
 // Rate limiting
-const { apiLimiter } = require('./middlewares/rateLimiter');
+const { apiLimiter } = require('./middlewares/rateLimit.middleware');
 app.use('/api', apiLimiter);
 
 // Health check endpoint

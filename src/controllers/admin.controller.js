@@ -61,16 +61,22 @@ const getAllUsers = async (req, res, next) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
+    const projection = { 
+      password: 0, 
+      savedProperties: 0, 
+      recentlyViewed: 0, 
+      fcmTokens: 0,
+      notifications: 0 
+    };
+
+    // PII Restriction for Management role
+    if (req.user.role === 'management') {
+      projection.email = 0;
+      projection.phone = 0;
+    }
+
     const users = await Users()
-      .find(query, { 
-        projection: { 
-          password: 0, 
-          savedProperties: 0, 
-          recentlyViewed: 0, 
-          fcmTokens: 0,
-          notifications: 0 
-        } 
-      })
+      .find(query, { projection })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))

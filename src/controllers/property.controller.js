@@ -182,12 +182,34 @@ const getProperties = async (req, res, next) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const properties = await Properties()
-      .find(query)
-      .sort(sortObj)
-      .skip(skip)
-      .limit(Number(limit))
-      .toArray();
+    const properties = await Properties().aggregate([
+      { $match: query },
+      { $sort: sortObj },
+      { $skip: skip },
+      { $limit: Number(limit) },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'agent',
+          foreignField: '_id',
+          as: 'agentDetails'
+        }
+      },
+      {
+        $addFields: {
+          agent: { $arrayElemAt: ['$agentDetails', 0] }
+        }
+      },
+      {
+        $project: {
+          agentDetails: 0,
+          'agent.password': 0,
+          'agent.resetPasswordToken': 0,
+          'agent.resetPasswordExpires': 0,
+          'agent.verificationToken': 0
+        }
+      }
+    ]).toArray();
 
     const total = await Properties().countDocuments(query);
 
@@ -221,10 +243,32 @@ const getMyProperties = async (req, res, next) => {
 
     const sortObj = getSortObject(req.query.sort);
 
-    const properties = await Properties()
-      .find(query)
-      .sort(sortObj)
-      .toArray();
+    const properties = await Properties().aggregate([
+      { $match: query },
+      { $sort: sortObj },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'agent',
+          foreignField: '_id',
+          as: 'agentDetails'
+        }
+      },
+      {
+        $addFields: {
+          agent: { $arrayElemAt: ['$agentDetails', 0] }
+        }
+      },
+      {
+        $project: {
+          agentDetails: 0,
+          'agent.password': 0,
+          'agent.resetPasswordToken': 0,
+          'agent.resetPasswordExpires': 0,
+          'agent.verificationToken': 0
+        }
+      }
+    ]).toArray();
 
     return ApiResponse.success(res, 'My listings fetched', { properties });
   } catch (error) {
