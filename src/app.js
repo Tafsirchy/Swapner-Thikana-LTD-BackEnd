@@ -21,27 +21,31 @@ app.use(helmet({
 // CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
     if (!origin) return callback(null, true);
     
-    // Whitelist for production and local development
+    // Strict Whitelist
     const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'https://shwapner-thikana.vercel.app',
-      'https://www.shwapnerthikana.com',
-      'https://shwapnerthikana.com',
-      'http://localhost:3000',
-      'http://localhost:3001'
-    ].filter(Boolean); // Remove null/undefined if env var is missing
+      process.env.FRONTEND_URL,              // Production Frontend
+      'https://shwapner-thikana.vercel.app', // Vercel Preview/Prod
+      'https://www.shwapnerthikana.com',     // Custom Domain
+      'https://shwapnerthikana.com',         // Custom Domain (non-www)
+    ];
 
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    // Add localhost only in development
+    if (process.env.NODE_ENV === 'development') {
+      allowedOrigins.push('http://localhost:3000');
+      allowedOrigins.push('http://localhost:3001');
+    }
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Rejected request from origin: ${origin}`);
+      console.warn(`[CORS Blocked] Origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true, // Required for cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Auth-Token'],
 }));
