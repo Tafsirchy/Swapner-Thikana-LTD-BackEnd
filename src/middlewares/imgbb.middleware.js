@@ -65,7 +65,10 @@ const imgbbUpload = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('ImgBB Middleware Error:', error);
+    console.error('ImgBB Middleware Error:', error.message);
+    if (error.response?.data) {
+      console.error('ImgBB API Error Details:', JSON.stringify(error.response.data, null, 2));
+    }
     next(error);
   }
 };

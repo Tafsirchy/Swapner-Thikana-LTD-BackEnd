@@ -38,7 +38,7 @@ router.put('/:id', protect, authorize('admin', 'management', 'agent'), updatePro
 // @access  Private/Admin
 router.delete('/:id', protect, authorize('admin', 'management', 'agent'), projectController.deleteProject);
 
-const upload = require('../middlewares/upload.middleware');
+const { upload } = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 const imageOptimization = require('../middlewares/image-optimization.middleware');
 

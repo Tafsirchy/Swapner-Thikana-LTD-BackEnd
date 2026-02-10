@@ -17,93 +17,88 @@ const createPropertyValidator = [
     .custom((value) => value > 0).withMessage('Price must be greater than 0'),
   
   body('location.city')
-    .trim()
-    .notEmpty().withMessage('City is required'),
+    .optional({ checkFalsy: true })
+    .trim(),
   
   body('location.area')
-    .trim()
-    .notEmpty().withMessage('Area is required'),
+    .optional({ checkFalsy: true })
+    .trim(),
     
   body('location.address')
-    .trim()
-    .notEmpty().withMessage('Address is required'),
+    .optional({ checkFalsy: true })
+    .trim(),
     
   body('propertyType')
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty().withMessage('Property type is required')
     .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse', 'villa', 'duplex', 'penthouse']).withMessage('Invalid property type'),
     
   body('listingType')
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty().withMessage('Listing type is required')
     .isIn(['sale', 'rent']).withMessage('Invalid listing type'),
     
   body('bedrooms')
-    .optional()
+    .optional({ checkFalsy: true })
     .isInt({ min: 0 }).withMessage('Bedrooms must be a positive integer'),
     
   body('bathrooms')
-    .optional()
+    .optional({ checkFalsy: true })
     .isInt({ min: 0 }).withMessage('Bathrooms must be a positive integer'),
     
   body('area')
-    .notEmpty().withMessage('Area size is required')
+    .optional({ checkFalsy: true })
     .isNumeric().withMessage('Area must be a number'),
 
   body('amenities')
-    .optional()
+    .optional({ checkFalsy: true })
     .isArray().withMessage('Amenities must be an array'),
 
   body('features')
-    .optional()
+    .optional({ checkFalsy: true })
     .isArray().withMessage('Features must be an array'),
-    
-  // Prevent mass assignment of sensitive fields
-  body('views').not().exists().withMessage('Cannot set views manually'),
-  body('slug').not().exists().withMessage('Cannot set slug manually'),
-  body('agent').not().exists().withMessage('Cannot set agent manually'),
-  body('isVerified').not().exists().withMessage('Cannot set verification status manually'),
 ];
 
 const updatePropertyValidator = [
   body('title')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
   
   body('description')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 20 }).withMessage('Description must be at least 20 characters'),
   
   body('price')
-    .optional()
+    .optional({ checkFalsy: true })
     .isNumeric().withMessage('Price must be a number')
     .custom((value) => value > 0).withMessage('Price must be greater than 0'),
 
   body('propertyType')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isIn(['apartment', 'house', 'land', 'commercial', 'office', 'shop', 'warehouse', 'villa', 'duplex', 'penthouse']).withMessage('Invalid property type'),
     
   body('listingType')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isIn(['sale', 'rent']).withMessage('Invalid listing type'),
 
+  body('location.city').optional({ checkFalsy: true }).trim(),
+  body('location.area').optional({ checkFalsy: true }).trim(),
+  body('location.address').optional({ checkFalsy: true }).trim(),
+  body('bedrooms').optional({ checkFalsy: true }).isInt({ min: 0 }),
+  body('bathrooms').optional({ checkFalsy: true }).isInt({ min: 0 }),
+  body('area').optional({ checkFalsy: true }).isNumeric(),
+
   body('amenities')
-    .optional()
+    .optional({ checkFalsy: true })
     .isArray().withMessage('Amenities must be an array'),
 
   body('features')
-    .optional()
+    .optional({ checkFalsy: true })
     .isArray().withMessage('Features must be an array'),
-    
-  // Prevent mass assignment of sensitive fields
-  body('views').not().exists().withMessage('Cannot update views manually'),
-  body('slug').not().exists().withMessage('Cannot update slug manually'),
-  body('agent').not().exists().withMessage('Cannot update agent manually'),
-  body('createdAt').not().exists().withMessage('Cannot update creation date'),
 ];
 
 module.exports = {

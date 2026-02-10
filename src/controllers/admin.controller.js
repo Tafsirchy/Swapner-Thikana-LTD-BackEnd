@@ -114,6 +114,7 @@ const updateUserRole = async (req, res, next) => {
     const { role } = req.body;
 
     if (!['customer', 'agent', 'admin', 'management'].includes(role)) {
+
       return ApiResponse.error(res, 'Invalid role', 400);
     }
 
@@ -122,14 +123,17 @@ const updateUserRole = async (req, res, next) => {
     if (!targetUser) {
       return ApiResponse.error(res, 'User not found', 404);
     }
+    
+    console.log(`[AdminController] Target User Found: Role=${targetUser.role}`);
 
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own role', 400);
     }
 
     if (targetUser.role === 'admin') {
-      return ApiResponse.error(res, 'Administrator roles are protected and cannot be changed', 403);
+      return ApiResponse.error(res, 'Administrator accounts are protected. You cannot change their roles or permissions.', 403);
     }
+
 
     const result = await Users().updateOne(
       { _id: new ObjectId(id) },
@@ -156,6 +160,8 @@ const updateUserStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status } = req.body; // Expecting 'active', 'inactive', or 'suspended'
 
+    console.log(`[AdminController] Update Status Request: ID=${id}, Status=${status}, Requester=${req.user._id}`);
+
     if (!['active', 'inactive', 'suspended'].includes(status)) {
       return ApiResponse.error(res, 'Invalid status value', 400);
     }
@@ -165,14 +171,17 @@ const updateUserStatus = async (req, res, next) => {
     if (!targetUser) {
       return ApiResponse.error(res, 'User not found', 404);
     }
+    
+    console.log(`[AdminController] Target User Found: Role=${targetUser.role}`);
 
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own status', 400);
     }
 
     if (targetUser.role === 'admin') {
-      return ApiResponse.error(res, 'Administrator accounts are protected and status cannot be changed', 403);
+      return ApiResponse.error(res, 'Administrator accounts are protected. You cannot change their status.', 403);
     }
+
 
     const isActive = status === 'active';
 
@@ -206,9 +215,18 @@ const deleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Don't allow deleting own account
+    // Don't allow deleting own account or any admin account
+    const targetUser = await Users().findOne({ _id: new ObjectId(id) });
+    if (!targetUser) {
+      return ApiResponse.error(res, 'User not found', 404);
+    }
+
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot delete your own account', 400);
+    }
+
+    if (targetUser.role === 'admin') {
+      return ApiResponse.error(res, 'Administrator accounts are protected. You cannot delete them.', 403);
     }
 
     const result = await Users().updateOne(

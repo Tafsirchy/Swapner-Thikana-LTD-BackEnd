@@ -10,7 +10,7 @@ const { authorize } = require('../middlewares/role.middleware');
 // @access  Private/Admin
 const { validate } = require('../middlewares/validation.middleware');
 const { updateProfileValidator } = require('../validators/user.validator');
-const upload = require('../middlewares/upload.middleware');
+const { upload } = require('../middlewares/upload.middleware');
 const { imgbbUpload } = require('../middlewares/imgbb.middleware');
 const imageOptimization = require('../middlewares/image-optimization.middleware');
 

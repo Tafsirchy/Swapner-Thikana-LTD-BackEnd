@@ -106,8 +106,22 @@ const getAgents = async (req, res, next) => {
     
     // Handle file upload
     if (req.file) {
-      updateData.image = req.file.path; // Save Cloudinary URL to 'image' field (legacy naming) or 'avatar'
-      updateData.avatar = req.file.path; // Save to 'avatar' as well to standardize
+      // 1. Fetch current user to get old image
+      const currentUser = await Users().findOne({ _id: new ObjectId(req.user._id) });
+      
+      // 2. Delete old image if it exists
+      if (currentUser && currentUser.image) {
+         // Handle both string URL and object structure
+         // Note: Users collection might have mixed legacy string URLs and new Objects
+         const { deleteImage } = require('../utils/storageCleanup');
+         await deleteImage(currentUser.image);
+         if (currentUser.avatar && currentUser.avatar !== currentUser.image) {
+            await deleteImage(currentUser.avatar);
+         }
+      }
+
+      updateData.image = req.file.path; // Save ImgBB Object (or URL)
+      updateData.avatar = req.file.path; // Keep synced
     }
 
     // Agent specific fields
@@ -354,6 +368,16 @@ const getRecentlyViewed = async (req, res, next) => {
  */
 const deleteProfileImage = async (req, res, next) => {
   try {
+    const { deleteImage } = require('../utils/storageCleanup');
+    
+    // 1. Fetch user to get image
+    const currentUser = await Users().findOne({ _id: new ObjectId(req.user._id) });
+
+    if (currentUser) {
+       if (currentUser.image) await deleteImage(currentUser.image);
+       if (currentUser.avatar && currentUser.avatar !== currentUser.image) await deleteImage(currentUser.avatar);
+    }
+
     await Users().updateOne(
       { _id: new ObjectId(req.user._id) },
       { 

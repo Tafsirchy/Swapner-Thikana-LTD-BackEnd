@@ -70,7 +70,7 @@ const register = async (req, res, next) => {
     try {
       await sendEmail({
         email: newPendingUser.email,
-        subject: 'Verify Your shwapner Thikana Account',
+        subject: 'Verify Your Shwapner Thikana Account',
         html: getEmailVerificationTemplate(newPendingUser.name, verificationUrl),
       });
       console.log('[REGISTER] Verification email sent to:', newPendingUser.email);
@@ -247,7 +247,7 @@ const forgotPassword = async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Password Reset Request - shwapner Thikana',
+        subject: 'Password Reset Request - Shwapner Thikana',
         html: getPasswordResetTemplate(user.name, resetUrl),
       });
     } catch (emailError) {
@@ -469,7 +469,7 @@ const resendVerification = async (req, res, next) => {
     try {
       await sendEmail({
         email: pendingUser.email,
-        subject: 'Verify Your shwapner Thikana Account',
+        subject: 'Verify Your Shwapner Thikana Account',
         html: getEmailVerificationTemplate(pendingUser.name, verificationUrl),
       });
       console.log('[RESEND] Verification email sent to:', pendingUser.email);

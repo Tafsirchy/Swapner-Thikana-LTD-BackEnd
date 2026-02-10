@@ -43,6 +43,49 @@ const getMagazines = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all magazines (Admin)
+ * @route   GET /api/magazines/admin/all
+ * @access  Private/Admin
+ */
+const getAllMagazines = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, search, status } = req.query;
+    const query = {};
+
+    if (status && status !== 'all') {
+      query.isPublished = status === 'published';
+    }
+
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const magazines = await Magazines()
+      .find(query)
+      .sort({ publicationDate: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .toArray();
+
+    const total = await Magazines().countDocuments(query);
+
+    return ApiResponse.success(res, 'All magazines fetched', {
+      magazines,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Get magazine by slug
  * @route   GET /api/magazines/:slug
  * @access  Public
@@ -164,6 +207,7 @@ module.exports = {
   getMagazines,
   getMagazineBySlug,
   getMagazineById,
+  getAllMagazines,
   createMagazine,
   updateMagazine,
   deleteMagazine

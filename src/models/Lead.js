@@ -14,6 +14,8 @@ const createIndexes = async (db) => {
   await db.collection('leads').createIndex({ user: 1 });
   await db.collection('leads').createIndex({ email: 1 });
   await db.collection('leads').createIndex({ agent: 1 });
+  await db.collection('leads').createIndex({ targetId: 1 });
+
 };
 
 module.exports = {

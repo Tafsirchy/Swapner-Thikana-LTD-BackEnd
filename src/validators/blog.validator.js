@@ -11,10 +11,7 @@ const createBlogValidator = [
     .notEmpty().withMessage('Content is required')
     .isLength({ min: 50 }).withMessage('Content must be at least 50 characters'),
     
-  body('excerpt')
-    .trim()
-    .notEmpty().withMessage('Excerpt is required')
-    .isLength({ max: 300 }).withMessage('Excerpt must not exceed 300 characters'),
+
   
   body('category')
     .trim()

@@ -366,9 +366,12 @@ const deleteLead = async (req, res, next) => {
       return ApiResponse.error(res, 'Lead not found', 404);
     }
 
-    // Role check: Agents cannot delete leads
-    if (req.user.role === 'agent') {
-       return ApiResponse.error(res, 'Agents are not authorized to delete leads', 403);
+    // ✅ CRITICAL FIX: Proper ownership and strict role validation
+    const isOwner = lead.agent && lead.agent.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isOwner && !isAdmin) {
+       return ApiResponse.error(res, 'Not authorized to delete this lead', 403);
     }
     
     // 1. Delete associated reminders

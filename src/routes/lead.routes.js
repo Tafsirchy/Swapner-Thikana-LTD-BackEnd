@@ -23,7 +23,8 @@ router.get('/my-inquiries', protect, leadController.getMyInquiries);
 // @access  Private
 router.get('/', protect, authorize('agent', 'admin', 'management'), leadController.getLeads);
 
-router.patch('/:id/status', protect, authorize('agent', 'admin', 'management'), updateLeadStatusValidator, validate, leadController.updateLeadStatus);
+router.patch('/:id/status', protect, authorize('admin', 'management'), updateLeadStatusValidator, validate, leadController.updateLeadStatus);
+
 
 // @route   POST /api/leads/:id/notes
 // @desc    Add a note to a lead

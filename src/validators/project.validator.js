@@ -12,97 +12,107 @@ const createProjectValidator = [
     .isLength({ min: 20 }).withMessage('Description must be at least 20 characters'),
   
   body('location.city')
-    .trim()
-    .notEmpty().withMessage('City is required'),
+    .optional({ checkFalsy: true })
+    .trim(),
     
   body('location.address')
-    .trim()
-    .notEmpty().withMessage('Address is required'),
+    .optional({ checkFalsy: true })
+    .trim(),
     
   body('type')
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty().withMessage('Project type is required')
     .isIn(['residential', 'commercial', 'mixed']).withMessage('Invalid project type'),
     
   body('status')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isIn(['ongoing', 'completed', 'upcoming']).withMessage('Invalid status'),
 
-  body('landSize').optional().trim(),
-  body('floorConfiguration').optional().trim(),
-  body('totalUnits').optional().trim(),
-  body('unitsPerFloor').optional().trim(),
-  body('facing').optional().trim(),
-  body('roadWidth').optional().trim(),
-  body('surroundings').optional().trim(),
-  body('flatSize').optional().trim(),
-  body('bedroomCount').optional().trim(),
-  body('bathroomCount').optional().trim(),
-  body('balconyCount').optional().trim(),
-  body('unitDetails').optional().isObject(),
-  body('parking').optional().trim(),
-  body('lift').optional().trim(),
-  body('stair').optional().trim(),
-  body('commonFacilities').optional().trim(),
-  body('pricePerSqFt').optional().trim(),
-  body('availableFlats').optional().trim(),
-  body('contact').optional().isObject(),
-  body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
-  body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
-  body('isHomeFeatured').optional().isBoolean().withMessage('isHomeFeatured must be a boolean'),
+  body('landSize').optional({ checkFalsy: true }).trim(),
+  body('floorConfiguration').optional({ checkFalsy: true }).trim(),
+  body('totalUnits').optional({ checkFalsy: true }).trim(),
+  body('unitsPerFloor').optional({ checkFalsy: true }).trim(),
+  body('facing').optional({ checkFalsy: true }).trim(),
+  body('roadWidth').optional({ checkFalsy: true }).trim(),
+  body('surroundings').optional({ checkFalsy: true }).trim(),
+  body('flatSize').optional({ checkFalsy: true }).trim(),
+  body('bedroomCount').optional({ checkFalsy: true }).trim(),
+  body('bathroomCount').optional({ checkFalsy: true }).trim(),
+  body('balconyCount').optional({ checkFalsy: true }).trim(),
+  body('unitDetails').optional({ checkFalsy: true }).isObject(),
+  body('parking').optional({ checkFalsy: true }).trim(),
+  body('lift').optional({ checkFalsy: true }).trim(),
+  body('stair').optional({ checkFalsy: true }).trim(),
+  body('commonFacilities').optional({ checkFalsy: true }).trim(),
+  body('pricePerSqFt').optional({ checkFalsy: true }).trim(),
+  body('availableFlats').optional({ checkFalsy: true }).trim(),
+  body('contact').optional({ checkFalsy: true }).isObject(),
+  body('handoverDate').optional({ checkFalsy: true }).trim(),
+  body('thumbnail').optional({ checkFalsy: true }).trim(),
+  body('brochureUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid brochure URL'),
+  body('mapUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid Google Maps URL'),
+  body('isHomeFeatured').optional({ checkFalsy: true }).isBoolean().withMessage('isHomeFeatured must be a boolean'),
 
   body('features')
-    .optional()
+    .optional({ checkFalsy: true })
     .isArray().withMessage('Features must be an array'),
-    
-  // Prevent mass assignment
-  body('slug').not().exists().withMessage('Cannot set slug manually'),
 ];
 
 const updateProjectValidator = [
   body('title')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
   
   body('description')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 20 }).withMessage('Description must be at least 20 characters'),
     
+  body('location.city')
+    .optional({ checkFalsy: true })
+    .trim(),
+    
+  body('location.address')
+    .optional({ checkFalsy: true })
+    .trim(),
+    
+  body('type')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isIn(['residential', 'commercial', 'mixed']).withMessage('Invalid project type'),
+
   body('status')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isIn(['ongoing', 'completed', 'upcoming']).withMessage('Invalid status'),
 
-  body('landSize').optional().trim(),
-  body('floorConfiguration').optional().trim(),
-  body('totalUnits').optional().trim(),
-  body('unitsPerFloor').optional().trim(),
-  body('facing').optional().trim(),
-  body('roadWidth').optional().trim(),
-  body('surroundings').optional().trim(),
-  body('flatSize').optional().trim(),
-  body('bedroomCount').optional().trim(),
-  body('bathroomCount').optional().trim(),
-  body('balconyCount').optional().trim(),
-  body('unitDetails').optional().isObject(),
-  body('parking').optional().trim(),
-  body('lift').optional().trim(),
-  body('stair').optional().trim(),
-  body('commonFacilities').optional().trim(),
-  body('pricePerSqFt').optional().trim(),
-  body('availableFlats').optional().trim(),
-  body('contact').optional().isObject(),
-  body('brochureUrl').optional().isURL().withMessage('Invalid brochure URL'),
-  body('mapUrl').optional().isURL().withMessage('Invalid Google Maps URL'),
-  body('isHomeFeatured').optional().isBoolean().withMessage('isHomeFeatured must be a boolean'),
-  body('features').optional().isArray(),
-    
-  // Prevent mass assignment
-  body('slug').not().exists().withMessage('Cannot update slug manually'),
-  body('createdAt').not().exists().withMessage('Cannot update creation date'),
+  body('landSize').optional({ checkFalsy: true }).trim(),
+  body('floorConfiguration').optional({ checkFalsy: true }).trim(),
+  body('totalUnits').optional({ checkFalsy: true }).trim(),
+  body('unitsPerFloor').optional({ checkFalsy: true }).trim(),
+  body('facing').optional({ checkFalsy: true }).trim(),
+  body('roadWidth').optional({ checkFalsy: true }).trim(),
+  body('surroundings').optional({ checkFalsy: true }).trim(),
+  body('flatSize').optional({ checkFalsy: true }).trim(),
+  body('bedroomCount').optional({ checkFalsy: true }).trim(),
+  body('bathroomCount').optional({ checkFalsy: true }).trim(),
+  body('balconyCount').optional({ checkFalsy: true }).trim(),
+  body('unitDetails').optional({ checkFalsy: true }).isObject(),
+  body('parking').optional({ checkFalsy: true }).trim(),
+  body('lift').optional({ checkFalsy: true }).trim(),
+  body('stair').optional({ checkFalsy: true }).trim(),
+  body('commonFacilities').optional({ checkFalsy: true }).trim(),
+  body('pricePerSqFt').optional({ checkFalsy: true }).trim(),
+  body('availableFlats').optional({ checkFalsy: true }).trim(),
+  body('contact').optional({ checkFalsy: true }).isObject(),
+  body('handoverDate').optional({ checkFalsy: true }).trim(),
+  body('thumbnail').optional({ checkFalsy: true }).trim(),
+  body('brochureUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid brochure URL'),
+  body('mapUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid Google Maps URL'),
+  body('isHomeFeatured').optional({ checkFalsy: true }).isBoolean().withMessage('isHomeFeatured must be a boolean'),
+  body('features').optional({ checkFalsy: true }).isArray(),
 ];
 
 module.exports = {

@@ -15,6 +15,7 @@ const { deleteImage } = require('../utils/storageCleanup');
  */
 const createProject = async (req, res, next) => {
   try {
+    console.log('[Create Project] Request Body:', JSON.stringify(req.body, null, 2));
     const projectData = {
       ...req.body,
       slug: await generateUniqueSlug(req.body.title, Projects()),
@@ -278,18 +279,60 @@ const updateProject = async (req, res, next) => {
   try {
     const projectId = new ObjectId(req.params.id);
     
-    const updateData = {
-      ...req.body,
-      updatedAt: new Date()
-    };
+    // Whitelist allowed fields to prevent mass assignment
+    const allowedFields = [
+      'title', 'description', 'location', 'status', 'images', 'type',
+      'landSize', 'floorConfiguration', 'totalUnits', 'unitsPerFloor',
+      'facing', 'roadWidth', 'surroundings', 'flatSize', 'bedroomCount',
+      'bathroomCount', 'balconyCount', 'unitDetails', 'parking', 'lift',
+      'stair', 'commonFacilities', 'pricePerSqFt', 'availableFlats',
+      'contact', 'thumbnail', 'brochureUrl', 'mapUrl', 'handoverDate',
+      'isHomeFeatured', 'features'
+    ];
 
-    delete updateData._id;
-    delete updateData.slug;
+    const updateData = {};
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    updateData.updatedAt = new Date();
+    
+    // Ownership check
+    const project = await Projects().findOne({ _id: projectId });
+    if (!project) {
+      return ApiResponse.error(res, 'Project not found', 404);
+    }
+
+    if (req.user.role === 'agent' && project.agent?.toString() !== req.user._id.toString()) {
+      return ApiResponse.error(res, 'Not authorized to update this project', 403);
+    }
+
+    // Image Diffing & Cleanup
+    if (updateData.images && Array.isArray(updateData.images)) {
+       const oldImages = project.images || [];
+       const newImages = updateData.images;
+       
+       const getImgId = (img) => (typeof img === 'string' ? img : img?.path?.url || img?.url || JSON.stringify(img));
+       const newImageIds = new Set(newImages.map(getImgId));
+       
+       const imagesToDelete = oldImages.filter(img => !newImageIds.has(getImgId(img)));
+       
+       if (imagesToDelete.length > 0) {
+          console.log(`[ProjectUpdate] Deleting ${imagesToDelete.length} removed images...`);
+          const { deleteImage } = require('../utils/storageCleanup');
+          imagesToDelete.forEach(img => {
+             deleteImage(img).catch(err => console.error('[ProjectUpdate] Delete failed:', err));
+          });
+       }
+    }
 
     const result = await Projects().updateOne(
       { _id: projectId },
       { $set: updateData }
     );
+
 
     if (result.matchedCount === 0) {
       return ApiResponse.error(res, 'Project not found', 404);
@@ -312,6 +355,17 @@ const deleteProject = async (req, res, next) => {
   try {
     const projectId = new ObjectId(req.params.id);
 
+    // Ownership check
+    const project = await Projects().findOne({ _id: projectId });
+    if (!project) {
+      return ApiResponse.error(res, 'Project not found', 404);
+    }
+
+    if (req.user.role === 'agent' && project.agent?.toString() !== req.user._id.toString()) {
+      return ApiResponse.error(res, 'Not authorized to delete this project', 403);
+    }
+
+
     // 1. Delete associated leads
     await Leads().deleteMany({ targetId: projectId, interestType: 'project' });
 
@@ -333,8 +387,8 @@ const deleteProject = async (req, res, next) => {
     );
 
     // 4. Cleanup Images
-    const project = await Projects().findOne({ _id: projectId });
     if (project && project.images && Array.isArray(project.images)) {
+
       project.images.forEach(img => {
         deleteImage(img).catch(err => console.error(err));
       });

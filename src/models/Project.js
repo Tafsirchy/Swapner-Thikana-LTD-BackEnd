@@ -12,6 +12,8 @@ const Projects = () => getDB().collection('projects');
 const createIndexes = async (db) => {
   await db.collection('projects').createIndex({ slug: 1 }, { unique: true });
   await db.collection('projects').createIndex({ status: 1 });
+  await db.collection('projects').createIndex({ agent: 1 });
+
 };
 
 module.exports = {

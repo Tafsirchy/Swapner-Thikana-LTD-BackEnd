@@ -1,5 +1,5 @@
 /**
- * Luxury HTML Email Templates for shwapner Thikana Ltd
+ * Luxury HTML Email Templates for Shwapner Thikana Ltd
  */
 
 const primaryColor = '#F59E0B'; // Gold
@@ -28,13 +28,13 @@ const baseTemplate = (content) => `
     <div class="container">
         <div class="header">
             <div class="logo">স্বপ্নের ঠিকানা</div>
-            <div style="color: #94a3b8; font-size: 12px; margin-top: 5px;">shwapner THIKANA LTD</div>
+            <div style="color: #94a3b8; font-size: 12px; margin-top: 5px;">SHWAPNER THIKANA LTD</div>
         </div>
         <div class="content">
             ${content}
         </div>
         <div class="footer">
-            &copy; 2026 shwapner Thikana Ltd. All rights reserved.<br>
+            &copy; 2026 Shwapner Thikana Ltd. All rights reserved.<br>
             Dhaka, Bangladesh | Building Dreams, Creating Addresses
         </div>
     </div>
@@ -45,30 +45,30 @@ const baseTemplate = (content) => `
 const getEmailVerificationTemplate = (name, url) => baseTemplate(`
     <h1>Verify Your Address</h1>
     <p>Dear ${name},</p>
-    <p>Welcome to <strong>shwapner Thikana Ltd</strong>. We are thrilled to have you join our exclusive community of homeowners and investors.</p>
+    <p>Welcome to <strong>Shwapner Thikana Ltd</strong>. We are thrilled to have you join our exclusive community of homeowners and investors.</p>
     <p>To finalize your account registration and start exploring premium real estate opportunities, please verify your email address by clicking the button below:</p>
     <a href="${url}" class="button">Verify My Account</a>
     <p>If the button doesn't work, copy and paste this link into your browser:</p>
     <p style="word-break: break-all; color: ${primaryColor}; font-size: 12px;">${url}</p>
     <p>This link will expire in 24 hours.</p>
-    <p>Best Regards,<br>The shwapner Thikana Team</p>
+    <p>Best Regards,<br>The Shwapner Thikana Team</p>
 `);
 
 const getPasswordResetTemplate = (name, url) => baseTemplate(`
     <h1>Reset Your Password</h1>
     <p>Hello ${name},</p>
-    <p>We received a request to reset your password for your <strong>shwapner Thikana Ltd</strong> account.</p>
+    <p>We received a request to reset your password for your <strong>Shwapner Thikana Ltd</strong> account.</p>
     <p>If you made this request, click the button below to set a new password:</p>
     <a href="${url}" class="button">Reset Password</a>
     <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
     <p>Link expires in 10 minutes.</p>
-    <p>Warmly,<br>shwapner Thikana Support</p>
+    <p>Warmly,<br>Shwapner Thikana Support</p>
 `);
 
 const getWelcomeEmailTemplate = (name) => baseTemplate(`
     <h1>Welcome to Excellence</h1>
     <p>Dear ${name},</p>
-    <p>Your account with <strong>shwapner Thikana Ltd</strong> has been successfully verified.</p>
+    <p>Your account with <strong>Shwapner Thikana Ltd</strong> has been successfully verified.</p>
     <p>Our premium real estate platform is now at your fingertips. Whether you are looking for a luxury penthouse in Gulshan, a sprawling estate in Banani, or a high-yield commercial investment, we are here to help you find your "Dream Address".</p>
     <p>What's next?</p>
     <ul>
@@ -77,7 +77,7 @@ const getWelcomeEmailTemplate = (name) => baseTemplate(`
         <li>Set up personalized property alerts</li>
     </ul>
     <a href="${process.env.FRONTEND_URL}" class="button">Start Exploring</a>
-    <p>Excellence in every square foot,<br>shwapner Thikana Team</p>
+    <p>Excellence in every square foot,<br>Shwapner Thikana Team</p>
 `);
 
 module.exports = {

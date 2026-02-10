@@ -173,6 +173,7 @@ const createBlog = async (req, res, next) => {
       slug: await generateUniqueSlug(req.body.title, Blogs()),
       author: new ObjectId(req.user._id),
       readingTime: calculateReadingTime(req.body.content),
+      excerpt: req.body.excerpt || req.body.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...',
       views: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
