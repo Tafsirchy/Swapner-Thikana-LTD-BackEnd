@@ -31,6 +31,11 @@ const createProperty = async (req, res, next) => {
        }
     });
 
+    // Validate Coordinates
+    if (!whitelistedData.location || !whitelistedData.location.latitude || !whitelistedData.location.longitude) {
+      return ApiResponse.error(res, "Property location coordinates are required. Please select a valid address or pin the location on the map.", 400);
+    }
+
     const propertyData = {
       ...whitelistedData,
       agent: new ObjectId(req.user._id),
@@ -458,6 +463,13 @@ const updateProperty = async (req, res, next) => {
     }
 
     const updateData = { ...req.body, updatedAt: new Date() };
+
+    // Validate Coordinates if location is being updated
+    if (updateData.location) {
+      if (!updateData.location.latitude || !updateData.location.longitude) {
+        return ApiResponse.error(res, "Property location coordinates are required.", 400);
+      }
+    }
 
     // Ensure numeric consistency
     if (updateData.price) updateData.price = Number(updateData.price);
