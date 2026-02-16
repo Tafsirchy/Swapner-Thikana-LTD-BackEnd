@@ -1,54 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
     <title>Inquiry Status Update</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
-        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-        .email-body { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo { width: 150px; height: auto; margin-bottom: 20px; }
-        .status-badge { display: inline-block; padding: 10px 20px; border-radius: 50px; background: #D4AF37; color: #1a1a1a; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; margin-top: 10px; }
-        .content { margin-bottom: 30px; }
-        .property-box { background: #f8f8f8; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #D4AF37; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
-        .btn { display: inline-block; padding: 14px 30px; background: #D4AF37; color: #1a1a1a; text-decoration: none; border-radius: 12px; font-weight: bold; transition: all 0.3s; }
+    <style type="text/css">
+        /* Client-Specific Resets */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        
+        /* General Styles */
+        body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; background-color: #f4f4f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .wrapper { width: 100%; table-layout: fixed; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        .webkit { max-width: 600px; margin: 0 auto; }
+        
+        /* Mobile Styles */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; max-width: 100% !important; }
+            .fluid { width: 100% !important; max-width: 100% !important; height: auto !important; margin-left: auto !important; margin-right: auto !important; }
+            .stack-column, .stack-column-center { display: block !important; width: 100% !important; max-width: 100% !important; direction: ltr !important; }
+            .stack-column-center { text-align: center !important; }
+            .center-on-mobile { text-align: center !important; }
+            .mobile-padding { padding-left: 20px !important; padding-right: 20px !important; }
+            .brand-heading { font-size: 20px !important; letter-spacing: 1px !important; }
+        }
     </style>
+    <!--[if mso]>
+    <xml>
+    <o:OfficeDocumentSettings>
+    <o:AllowPNG/>
+    <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
 </head>
-<body>
-    <div class="container">
-        <div class="email-body">
-            <div class="header">
-                <img src="{{logoUrl}}" alt="STLTD Properties" class="logo">
-                <h1>Status Update</h1>
-            </div>
-            <div class="content">
-                <p>Hello <strong>{{userName}}</strong>,</p>
-                <p>We're writing to let you know that the status of your inquiry has been updated:</p>
-                
-                <div style="text-align: center;">
-                    <span class="status-badge">{{newStatus}}</span>
-                </div>
-
-                <div class="property-box">
-                    <p style="margin: 0; font-size: 14px; color: #666;">Property Reference:</p>
-                    <h3 style="margin: 5px 0;">{{propertyTitle}}</h3>
-                </div>
-
-                <p>Our agent is actively working on your request. You can track all your inquiries and updates through your dashboard.</p>
-                
-                <div style="text-align: center; margin-top: 40px;">
-                    <a href="{{dashboardUrl}}" class="btn">View Dashboard</a>
-                </div>
-            </div>
-            
-            <div class="footer">
-                <p>&copy; 2026 shwapner Thikana Ltd. All rights reserved.</p>
-                <p>If you have any questions, please reply to this email or visit our <a href="{{contactUrl}}">contact page</a>.</p>
-            </div>
-        </div>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5;">
+    <!-- Hidden Preheader Text -->
+    <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
+        Your inquiry status has been updated. Click to view details.
     </div>
+
+    <center class="wrapper" style="width: 100%; background-color: #f4f4f5;">
+        <div class="webkit" style="max-width: 600px; margin: 0 auto;">
+            <!--[if mso]>
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="width: 600px;">
+            <tr>
+            <td>
+            <![endif]-->
+            
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto;" class="email-container">
+                <!-- Spacing -->
+                <tr>
+                    <td height="40" style="font-size: 40px; line-height: 40px;">&nbsp;</td>
+                </tr>
+                
+                <!-- Main Content -->
+                <tr>
+                    <td style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 40px 40px 20px 40px; text-align: center;" class="mobile-padding">
+<h2 class="brand-heading" style="margin: 0; font-family: 'Cinzel', serif; font-size: 24px; color: #D4AF37; text-transform: uppercase; letter-spacing: 2px;">Shwapner Thikana LTD</h2>
+                                </td>
+                            </tr>
+                            
+                            <!-- Status Update Title -->
+                            <tr>
+                                <td style="padding: 0 40px 10px 40px; text-align: center; font-family: sans-serif; font-size: 24px; line-height: 30px; font-weight: bold; color: #1a1a1a;" class="mobile-padding">
+                                    Status Update
+                                </td>
+                            </tr>
+
+                            <!-- Line Divider -->
+                            <tr>
+                                <td align="center" style="padding: 0 40px 30px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="60">
+                                        <tr>
+                                            <td style="border-bottom: 3px solid #D4AF37;"></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Body Text -->
+                            <tr>
+                                <td style="padding: 0 40px 20px 40px; font-family: sans-serif; font-size: 16px; line-height: 24px; color: #555555; text-align: left;" class="mobile-padding">
+                                    Hello <strong>{{userName}}</strong>,
+                                    <br><br>
+                                    We're writing to let you know that the status of your inquiry has been updated:
+                                </td>
+                            </tr>
+
+                            <!-- Status Badge -->
+                            <tr>
+                                <td align="center" style="padding: 10px 40px 30px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                            <td style="background-color: #D4AF37; border-radius: 50px; padding: 12px 30px;">
+                                                <span style="font-family: sans-serif; font-size: 16px; font-weight: bold; color: #1a1a1a; text-transform: uppercase; letter-spacing: 1px; display: block;">{{newStatus}}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Property Box -->
+                            <tr>
+                                <td style="padding: 0 40px 30px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9f9f9; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                                        <tr>
+                                            <td style="padding: 20px;">
+                                                <p style="margin: 0 0 5px 0; font-family: sans-serif; font-size: 12px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Property Reference</p>
+                                                <h3 style="margin: 0; font-family: sans-serif; font-size: 18px; color: #1a1a1a; font-weight: 600;">{{propertyTitle}}</h3>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Additional Info -->
+                            <tr>
+                                <td style="padding: 0 40px 40px 40px; font-family: sans-serif; font-size: 16px; line-height: 24px; color: #555555; text-align: left;" class="mobile-padding">
+                                    Our agent is actively working on your request. You can track all your inquiries and updates through your dashboard.
+                                </td>
+                            </tr>
+
+                            <!-- CTA Button -->
+                            <tr>
+                                <td align="center" style="padding: 0 40px 50px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                        <tr>
+                                            <td style="background-color: #1a1a1a; border-radius: 6px;">
+                                                <a href="{{dashboardUrl}}" target="_blank" style="font-family: sans-serif; font-size: 16px; font-weight: bold; color: #D4AF37; text-decoration: none; padding: 15px 30px; display: inline-block; border: 1px solid #1a1a1a; border-radius: 6px;">
+                                                    View Dashboard &rarr;
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding: 30px 20px; text-align: center; font-family: sans-serif; font-size: 13px; line-height: 20px; color: #888888;">
+                        <p style="margin: 0;">&copy; 2026 Shwapner Thikana Ltd. All rights reserved.</p>
+                        <p style="margin: 10px 0 0 0;">
+                            Dhaka, Bangladesh | <a href="{{contactUrl}}" style="color: #D4AF37; text-decoration: none;">Contact Us</a>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+            <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </div>
+    </center>
 </body>
 </html>

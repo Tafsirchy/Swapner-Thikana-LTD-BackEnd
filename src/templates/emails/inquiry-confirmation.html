@@ -1,103 +1,155 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inquiry Confirmation</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0a0f1e; color: #e4e4e7; line-height: 1.6; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 40px 30px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.1); }
-    .logo { font-size: 28px; font-weight: bold; color: #d4af37; margin-bottom: 10px; }
-    .header-icon { font-size: 48px; margin-bottom: 15px; }
-    .header-title { font-size: 24px; color: #f4f4f5; margin-bottom: 10px; }
-    .header-subtitle { font-size: 14px; color: #a1a1aa; }
-    .content { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 30px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
-    .greeting { font-size: 18px; font-weight: 600; color: #f4f4f5; margin-bottom: 20px; }
-    .text { color: #d4d4d8; margin-bottom: 15px; line-height: 1.8; }
-    .highlight-box { background: rgba(212, 175, 55, 0.1); border-left: 4px solid #d4af37; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    .property-info { background: rgba(255, 255, 255, 0.02); border-radius: 12px; padding: 20px; margin: 20px 0; }
-    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { color: #a1a1aa; font-size: 14px; }
-    .info-value { color: #f4f4f5; font-weight: 600; }
-    .cta-button { display: inline-block; background: #d4af37; color: #0a0f1e; padding: 15px 40px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px; margin: 20px 0; }
-    .footer { text-align: center; padding: 30px 20px; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 30px; }
-    .footer a { color: #d4af37; text-decoration: none; }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
+    <title>Inquiry Confirmation</title>
+    <style type="text/css">
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; }
+        body { margin: 0; padding: 0; width: 100% !important; background-color: #0a0f1e; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e4e4e7; }
+        
+        /* Mobile Styles */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; max-width: 100% !important; }
+            .mobile-padding { padding-left: 20px !important; padding-right: 20px !important; }
+            .mobile-stack { display: block !important; width: 100% !important; }
+            .mobile-center { text-align: center !important; }
+            .info-row td { display: block !important; width: 100% !important; padding-bottom: 5px !important; }
+            .info-label { margin-bottom: 2px !important; }
+            .brand-heading { font-size: 20px !important; }
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-icon">✅</div>
-      <div class="logo">🏛️ STLTD Properties</div>
-      <h1 class="header-title">Inquiry Received!</h1>
-      <p class="header-subtitle">We'll get back to you shortly</p>
+<body style="margin: 0; padding: 0; background-color: #0a0f1e;">
+    <!-- Hidden Preheader -->
+    <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
+        Inquiry Received! We'll get back to you shortly.
     </div>
 
-    <!-- Content -->
-    <div class="content">
-      <p class="greeting">Hello {{userName}},</p>
-      
-      <p class="text">
-        Thank you for your interest in our exclusive property. We have successfully received your inquiry and our team will review it shortly.
-      </p>
+    <center style="width: 100%; background-color: #0a0f1e;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <!--[if mso]>
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="width: 600px;">
+            <tr>
+            <td>
+            <![endif]-->
+            
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto;" class="email-container">
+                <!-- Spacing -->
+                <tr><td height="30" style="font-size: 30px; line-height: 30px;">&nbsp;</td></tr>
 
-      <div class="highlight-box">
-        <p style="color: #d4af37; font-weight: bold; margin-bottom: 10px;">📬 What happens next?</p>
-        <p style="color: #d4d4d8; font-size: 14px;">
-          Our dedicated agent will review your inquiry and contact you within 24 hours via your preferred method of communication.
-        </p>
-      </div>
+                <!-- Header -->
+                <tr>
+                    <td style="background-color: #1e293b; border-radius: 12px 12px 0 0; padding: 40px 30px; text-align: center; border: 1px solid #334155; border-bottom: 0;" class="mobile-padding">
+                        <!-- Logo/Icon -->
+                        <div class="brand-heading" style="font-size: 24px; font-weight: bold; color: #d4af37; margin-bottom: 15px; font-family: serif; text-transform: uppercase; letter-spacing: 1px;">
+                            Shwapner Thikana LTD
+                        </div>
+                        <h1 style="margin: 0; font-size: 24px; color: #f4f4f5; font-family: sans-serif;">Inquiry Received!</h1>
+                        <p style="margin: 5px 0 0 0; color: #a1a1aa; font-family: sans-serif; font-size: 14px;">We'll get back to you shortly</p>
+                    </td>
+                </tr>
 
-      <!-- Inquiry Details -->
-      <div class="property-info">
-        <h3 style="color: #f4f4f5; margin-bottom: 15px; font-size: 16px;">Your Inquiry Details</h3>
-        <div class="info-row">
-          <span class="info-label">Property:</span>
-          <span class="info-value">{{propertyTitle}}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Your Name:</span>
-          <span class="info-value">{{userName}}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Email:</span>
-          <span class="info-value">{{userEmail}}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Phone:</span>
-          <span class="info-value">{{userPhone}}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Date:</span>
-          <span class="info-value">{{inquiryDate}}</span>
-        </div>
-      </div>
+                <!-- Content Body -->
+                <tr>
+                    <td style="background-color: #0f172a; padding: 30px; border: 1px solid #334155; border-top: 0; border-radius: 0 0 12px 12px;" class="mobile-padding">
+                        <p style="font-size: 18px; font-weight: 600; color: #f4f4f5; margin: 0 0 20px 0; font-family: sans-serif;">
+                            Hello {{userName}},
+                        </p>
+                        
+                        <p style="color: #d4d4d8; margin: 0 0 25px 0; line-height: 1.6; font-family: sans-serif; font-size: 15px;">
+                            Thank you for your interest in our exclusive property. We have successfully received your inquiry and our team will review it shortly.
+                        </p>
 
-      <p class="text" style="margin-top: 20px;">
-        Your message: <br>
-        <em style="color: #a1a1aa; font-size: 14px;">"{{message}}"</em>
-      </p>
+                        <!-- Next Steps Box -->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #1A1F2E; border-left: 4px solid #d4af37; margin-bottom: 25px;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="color: #d4af37; font-weight: bold; margin: 0 0 10px 0; font-family: sans-serif; font-size: 15px;">📬 What happens next?</p>
+                                    <p style="color: #d4d4d8; font-size: 14px; margin: 0; line-height: 1.5; font-family: sans-serif;">
+                                        Our dedicated agent will review your inquiry and contact you within 24 hours.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
 
-      <div style="text-align: center;">
-        <a href="{{propertyUrl}}" class="cta-button">View Property →</a>
-      </div>
-    </div>
+                        <!-- Inquiry Details Table -->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #1e293b; border-radius: 8px; margin-bottom: 25px;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <h3 style="color: #f4f4f5; margin: 0 0 15px 0; font-size: 16px; font-family: sans-serif; border-bottom: 1px solid #334155; padding-bottom: 10px;">Your Inquiry Details</h3>
+                                    
+                                    <!-- Row 1 -->
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="info-row">
+                                        <tr>
+                                            <td style="padding: 5px 0; color: #a1a1aa; font-size: 14px; font-family: sans-serif;" width="30%" class="info-label">Property:</td>
+                                            <td style="padding: 5px 0; color: #f4f4f5; font-weight: 600; font-size: 14px; font-family: sans-serif;" width="70%">{{propertyTitle}}</td>
+                                        </tr>
+                                    </table>
+                                    <!-- Row 2 -->
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="info-row">
+                                        <tr>
+                                            <td style="padding: 5px 0; color: #a1a1aa; font-size: 14px; font-family: sans-serif;" width="30%" class="info-label">Details:</td>
+                                            <td style="padding: 5px 0; color: #f4f4f5; font-weight: 600; font-size: 14px; font-family: sans-serif;" width="70%">
+                                                {{userName}}<br>
+                                                {{userEmail}}<br>
+                                                {{userPhone}}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Row 3 -->
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="info-row">
+                                        <tr>
+                                            <td style="padding: 5px 0; color: #a1a1aa; font-size: 14px; font-family: sans-serif;" width="30%" class="info-label">Date:</td>
+                                            <td style="padding: 5px 0; color: #f4f4f5; font-weight: 600; font-size: 14px; font-family: sans-serif;" width="70%">{{inquiryDate}}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
 
-    <!-- Footer -->
-    <div class="footer">
-      <p style="margin-bottom: 10px;">
-        <a href="{{dashboardUrl}}">Go to Dashboard</a> | 
-        <a href="{{contactUrl}}">Contact Us</a>
-      </p>
-      <p>© 2026 STLTD Properties. All rights reserved.</p>
-      <p style="color: #52525b; font-size: 11px; margin-top: 10px;">
-        Discover Exclusive Properties in Bangladesh
-      </p>
-    </div>
-  </div>
+                        <!-- Message Quote -->
+                        <p style="margin: 0; color: #a1a1aa; font-size: 13px; font-family: sans-serif; font-style: italic; background: #1A1F2E; padding: 15px; border-radius: 6px;">
+                            "{{message}}"
+                        </p>
+
+                        <!-- Button -->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 30px;">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{propertyUrl}}" style="background-color: #d4af37; color: #0a0f1e; padding: 14px 30px; border-radius: 6px; text-decoration: none; font-weight: bold; font-family: sans-serif; font-size: 16px; display: inline-block;">
+                                        View Property &rarr;
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding: 30px 20px; text-align: center; color: #71717a; font-size: 12px; font-family: sans-serif;">
+                        <p style="margin: 0 0 10px 0;">
+                            <a href="{{dashboardUrl}}" style="color: #d4af37; text-decoration: none;">My Dashboard</a> &nbsp;|&nbsp; 
+                            <a href="{{contactUrl}}" style="color: #d4af37; text-decoration: none;">Contact Us</a>
+                        </p>
+                        <p style="margin: 0;">&copy; 2026 STLTD Properties. All rights reserved.</p>
+                        <p style="margin: 5px 0 0 0; color: #52525b;">Discover Exclusive Properties in Bangladesh</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </div>
+    </center>
 </body>
 </html>

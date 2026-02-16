@@ -32,9 +32,13 @@ const loadTemplate = async (templateName, data) => {
       html = html.replace(regex, data[key] || '');
     });
     
-    // Handle conditionals like {{#if featured}}
-    html = html.replace(/{{#if\s+(\w+)}}(.*?){{\/if}}/gs, (match, key, content) => {
-      return data[key] ? content : '';
+    // Handle conditionals like {{#if featured}}...{{else}}...{{/if}}
+    const pattern = /{{#if\s+(\w+)}}(.*?){{\/if}}/gs;
+    html = html.replace(pattern, (match, key, content) => {
+      const parts = content.split('{{else}}');
+      const ifContent = parts[0];
+      const elseContent = parts[1] || '';
+      return data[key] ? ifContent : elseContent;
     });
     
     return html;
