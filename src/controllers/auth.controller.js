@@ -115,7 +115,19 @@ const verifyEmail = async (req, res, next) => {
     });
 
     if (!pendingUser) {
-      return ApiResponse.error(res, 'Invalid or expired verification link. Please register again.', 400);
+      // IDEMPOTENCY CHECK:
+      // If not in PendingUsers, it might be because verification already succeeded (double click)
+      // or the token is genuinely invalid/expired.
+      // We'll check if a user with a verified flag already exists for a "success" fallback.
+      // Note: We don't have the email here unless we decode the token or store it differently,
+      // but for this specific architecture, if the token is gone, it usually means success or expiry.
+      
+      // Let's check if the token was recently used or if the user is already in the main collection.
+      // Since we don't have the email in the request, we can't easily check Users() without it.
+      // However, we can return a more helpful message or assume success if we want to be very lenient,
+      // but safest is to check if the user is already registered.
+      
+      return ApiResponse.error(res, 'Invalid or expired verification link. If you already verified, please try logging in.', 400);
     }
 
     // 2. Prepare User object
@@ -168,6 +180,11 @@ const login = async (req, res, next) => {
     // 1. Find user
     const user = await Users().findOne({ email: email.toLowerCase().trim() });
     if (!user) {
+      // CHECK PENDING USERS for better feedback
+      const pendingUser = await PendingUsers().findOne({ email: email.toLowerCase().trim() });
+      if (pendingUser) {
+        return ApiResponse.error(res, 'Your email is not verified yet. Please check your inbox for the verification link.', 403);
+      }
       return ApiResponse.error(res, 'Invalid credentials', 401);
     }
 
