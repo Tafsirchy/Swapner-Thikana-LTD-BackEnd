@@ -4,15 +4,45 @@ const path = require('path');
 
 // Create email transporter
 const createTransporter = () => {
-  // For development: Use Gmail
-  // For production: Use SendGrid, Mailgun, or AWS SES
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('EMAIL_USER and EMAIL_PASS environment variables are required');
+  }
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER || 'your-email@gmail.com',
-      pass: process.env.EMAIL_PASS || 'your-app-password'
-    }
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
   });
+};
+
+/**
+ * Low-level email sender — matches config/email.js signature
+ * Use this from auth.controller.js and anywhere that needs raw HTML sending
+ * without a template file.
+ * @param {object} options - { email, subject, html, text }
+ */
+const sendRawEmail = async (options) => {
+  if (!process.env.EMAIL_USER) {
+    console.log('\n--- 📧 DEV EMAIL LOG ---');
+    console.log(`To: ${options.email}`);
+    console.log(`Subject: ${options.subject}`);
+    console.log('--- END ---\n');
+    const match = options.html?.match(/href="([^"]*)"/);
+    if (match) console.log(`💡 DEV TIP: Found link: ${match[1]}\n`);
+    return { messageId: 'dev-mock-id' };
+  }
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: `"${process.env.EMAIL_FROM_NAME || 'Shwapner Thikana LTD'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+    to: options.email,
+    subject: options.subject,
+    text: options.message,
+    html: options.html,
+  };
+  const info = await transporter.sendMail(mailOptions);
+  console.log('Message sent: %s', info.messageId);
+  return info;
 };
 
 /**
@@ -58,12 +88,19 @@ const loadTemplate = async (templateName, data) => {
  * @returns {Promise<object>} - Send result
  */
 const sendEmail = async ({ to, subject, template, data }) => {
+  // Dev fallback: if no email credentials, log to console
+  if (!process.env.EMAIL_USER) {
+    console.log(`\n--- 📧 DEV TEMPLATE EMAIL ---`);
+    console.log(`To: ${to} | Subject: ${subject} | Template: ${template}`);
+    console.log('--- END ---\n');
+    return { success: true, messageId: 'dev-mock-id' };
+  }
   try {
     const transporter = createTransporter();
     const html = await loadTemplate(template, data);
     
     const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME || 'Shwapner Thikana LTD'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@stltd.com'}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'Shwapner Thikana LTD'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to,
       subject,
       html
@@ -178,10 +215,30 @@ const sendLeadStatusUpdateEmail = async (lead, newStatus) => {
   });
 };
 
+/**
+ * Send newsletter subscription confirmation email
+ */
+const sendNewsletterSubscriptionEmail = async (email, name, unsubscribeToken) => {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  
+  return sendEmail({
+    to: email,
+    subject: '✅ You are now subscribed — Shwapner Thikana LTD',
+    template: 'newsletter-subscription',
+    data: {
+      userName: name,
+      frontendUrl: baseUrl,
+      unsubscribeUrl: `${baseUrl}/newsletter/unsubscribe?token=${unsubscribeToken}`
+    }
+  });
+};
+
 module.exports = {
   sendEmail,
+  sendRawEmail,
   sendNewMatchEmail,
   sendInquiryConfirmationEmail,
   sendWelcomeEmail,
-  sendLeadStatusUpdateEmail
+  sendLeadStatusUpdateEmail,
+  sendNewsletterSubscriptionEmail
 };

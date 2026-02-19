@@ -4,7 +4,7 @@ const { Users } = require('../models/User');
 const { PendingUsers } = require('../models/PendingUser');
 const { generateToken } = require('../utils/jwt');
 const ApiResponse = require('../utils/apiResponse');
-const sendEmail = require('../config/email');
+const { sendRawEmail: sendEmail, sendWelcomeEmail } = require('../utils/emailSender');
 
 // Fix 3: Shortened cookie lifetime to 2h (matches new JWT_EXPIRES_IN)
 const setTokenCookie = (res, token) => {
@@ -19,7 +19,6 @@ const setTokenCookie = (res, token) => {
   res.cookie('token', token, cookieOptions);
 };
 const { getEmailVerificationTemplate } = require('../utils/emailTemplates');
-const { sendWelcomeEmail } = require('../utils/emailSender');
 
 /**
  * @desc    Register a new user
@@ -152,11 +151,31 @@ const verifyEmail = async (req, res, next) => {
     // 4. Delete from PendingUsers ONLY after successful insertion
     await PendingUsers().deleteOne({ _id: pendingUser._id });
     
-    // 5. Send Welcome Email (Async)
+    // 5. Send Welcome Email & Notify Admin (Async)
     try {
       await sendWelcomeEmail(newUser);
+      
+      // Notify Admin about new verified user
+      const notifyEmail = process.env.EMAIL_NOTIFY || process.env.EMAIL_USER;
+      if (notifyEmail) {
+        sendEmail({
+          email: notifyEmail,
+          subject: `👤 New User Verified: ${newUser.name}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f172a;color:#e2e8f0;border-radius:8px;">
+              <h3 style="color:#f59e0b;margin-top:0;">New User Registration</h3>
+              <p>A new user has verified their email and is now active.</p>
+              <hr style="border:0;border-top:1px solid #334155;margin:16px 0;">
+              <p><strong>Name:</strong> ${newUser.name}</p>
+              <p><strong>Email:</strong> ${newUser.email}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' })}</p>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/admin/users" style="display:inline-block;margin-top:16px;background:#f59e0b;color:#0f172a;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Manage Users →</a>
+            </div>
+          `
+        }).catch(err => console.error('[ADMIN NOTIFY] Registration alert failed:', err));
+      }
     } catch (msgError) {
-      console.error('[VERIFY EMAIL] Failed to send welcome email:', msgError);
+      console.error('[VERIFY EMAIL] Failed to send emails:', msgError);
     }
 
     console.log('[VERIFY EMAIL] User verified and moved to main collection:', newUser.email);
@@ -430,6 +449,12 @@ const googleCallback = async (req, res, next) => {
     // Bug fix: pass tokenVersion so protect middleware doesn't reject the token after logout revocation
     const token = generateToken(user._id, user.tokenVersion ?? 0);
     setTokenCookie(res, token);
+
+    // Send welcome email on first OAuth login (new user heuristic: account < 10s old)
+    const isNewUser = user.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 10000;
+    if (isNewUser) {
+      sendWelcomeEmail(user).catch(err => console.error('[GOOGLE OAUTH] Welcome email failed:', err));
+    }
 
     // Redirect based on user role
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';

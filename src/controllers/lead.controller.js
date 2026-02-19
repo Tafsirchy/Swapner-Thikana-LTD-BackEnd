@@ -4,7 +4,7 @@ const { Projects } = require('../models/Project');
 const ApiResponse = require('../utils/apiResponse');
 const { ObjectId } = require('mongodb');
 const { createNotificationHelper } = require('./notification.controller');
-const { sendInquiryConfirmationEmail } = require('../utils/emailSender');
+const { sendInquiryConfirmationEmail, sendRawEmail } = require('../utils/emailSender');
 const { Reminders } = require('../models/Reminder');
 
 
@@ -59,9 +59,7 @@ const createLead = async (req, res, next) => {
     const result = await Leads().insertOne(lead);
     const createdLead = { ...lead, _id: result.insertedId };
 
-    // Send confirmation email to user (async)
-    // Send confirmation email to user (non-blocking/fire-and-forget)
-    // We don't await this so the UI gets an immediate response
+    // Send confirmation email to user (async, non-blocking)
     const emailPromise = (itemType === 'property' || itemType === 'project')
       ? sendInquiryConfirmationEmail(createdLead, targetItem)
       : sendInquiryConfirmationEmail(createdLead, null);
@@ -69,6 +67,32 @@ const createLead = async (req, res, next) => {
     emailPromise.catch(emailError => {
       console.error('Failed to send inquiry confirmation email:', emailError);
     });
+
+    // Notify business owner (fire-and-forget)
+    const notifyEmail = process.env.EMAIL_NOTIFY || process.env.EMAIL_USER;
+    if (notifyEmail) {
+      sendRawEmail({
+        email: notifyEmail,
+        subject: `📬 New Inquiry: ${createdLead.subject} — from ${createdLead.name}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0f172a;color:#e2e8f0;border-radius:8px;">
+            <h2 style="color:#f59e0b;margin-top:0;">📬 New Inquiry Received</h2>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:8px 0;color:#94a3b8;width:120px;">Name</td><td style="padding:8px 0;font-weight:bold;">${createdLead.name}</td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;">Email</td><td style="padding:8px 0;"><a href="mailto:${createdLead.email}" style="color:#f59e0b;">${createdLead.email}</a></td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;">Phone</td><td style="padding:8px 0;">${createdLead.phone || '—'}</td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;">Subject</td><td style="padding:8px 0;">${createdLead.subject}</td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;">Type</td><td style="padding:8px 0;text-transform:capitalize;">${createdLead.interestType}</td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;vertical-align:top;">Message</td><td style="padding:8px 0;">${createdLead.message || '—'}</td></tr>
+              <tr><td style="padding:8px 0;color:#94a3b8;">Received</td><td style="padding:8px 0;">${new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' })}</td></tr>
+            </table>
+            <div style="margin-top:24px;padding-top:16px;border-top:1px solid #334155;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/leads" style="background:#f59e0b;color:#0f172a;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">View in Dashboard →</a>
+            </div>
+          </div>
+        `,
+      }).catch(err => console.error('Failed to send business notification email:', err));
+    }
 
     // Create notification for agent if exists
     if (targetItem?.agent) {

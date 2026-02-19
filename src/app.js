@@ -106,6 +106,7 @@ apiRouter.use('/agents', require('./routes/agent.routes'));
 apiRouter.use('/upload', require('./routes/upload.routes'));
 apiRouter.use('/seller', require('./routes/seller.routes'));
 apiRouter.use('/history', require('./routes/history.routes'));
+apiRouter.use('/newsletter', require('./routes/newsletter.routes'));
 
 // Mount on /api
 app.use('/api', apiRouter);
