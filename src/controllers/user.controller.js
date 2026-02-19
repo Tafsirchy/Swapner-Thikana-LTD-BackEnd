@@ -150,7 +150,7 @@ const getAgents = async (req, res, next) => {
 /**
  * @desc    Get user by ID
  * @route   GET /api/users/:id
- * @access  Public
+ * @access  optionalProtect — returns safe public fields for all; PII only for admin or self
  */
 const getUserById = async (req, res, next) => {
   try {
@@ -169,6 +169,20 @@ const getUserById = async (req, res, next) => {
 
     if (!user) {
       return ApiResponse.error(res, 'User not found', 404);
+    }
+
+    // PII filtering: only admins or the user themselves get email/phone
+    const caller = req.user;
+    const isAdminOrSelf =
+      caller &&
+      (caller.role === 'admin' ||
+        caller.role === 'management' ||
+        caller._id.toString() === user._id.toString());
+
+    if (!isAdminOrSelf) {
+      // Strip PII — return only safe public fields
+      const { email, phone, ...safeUser } = user;
+      return ApiResponse.success(res, 'User found', { user: safeUser });
     }
 
     return ApiResponse.success(res, 'User found', { user });

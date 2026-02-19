@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controllers/user.controller');
-const { protect } = require('../middlewares/auth.middleware');
+const { protect, optionalProtect } = require('../middlewares/auth.middleware');
 const { authorize } = require('../middlewares/role.middleware');
 
 // @route   GET /api/users
@@ -59,8 +59,8 @@ router.get('/recently-viewed', protect, userController.getRecentlyViewed);
 router.post('/recently-viewed/:propertyId', protect, userController.addRecentlyViewed);
 
 // @route   GET /api/users/:id
-// @desc    Get user by ID
-// @access  Public
-router.get('/:id', userController.getUserById);
+// @desc    Get user by ID — public for agents, PII-stripped for customers
+// @access  optionalProtect (auth enriches response; unauthenticated gets safe fields only)
+router.get('/:id', optionalProtect, userController.getUserById);
 
 module.exports = router;

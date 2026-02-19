@@ -5,6 +5,8 @@ const ApiResponse = require('../utils/apiResponse');
 
 /**
  * Protect routes - Verify JWT token
+ * Fix 5: Validates tokenVersion to invalidate sessions server-side after logout
+ * Fix 6: Consolidates isActive + status check to prevent deactivated users from accessing routes
  */
 const protect = async (req, res, next) => {
   let token;
@@ -42,8 +44,19 @@ const protect = async (req, res, next) => {
       return ApiResponse.error(res, 'User not found or account deactivated', 401);
     }
 
-    if (!user.isActive) {
+    // Fix 6: Consolidate dual status check — both isActive (bool) and status (string) must pass
+    if (!user.isActive || user.status === 'inactive') {
       return ApiResponse.error(res, 'Account has been deactivated', 403);
+    }
+
+    // Fix 5: Token revocation via tokenVersion
+    // If the user's tokenVersion has been incremented (e.g. on logout), reject old tokens
+    if (
+      decoded.tokenVersion !== undefined &&
+      user.tokenVersion !== undefined &&
+      decoded.tokenVersion !== user.tokenVersion
+    ) {
+      return ApiResponse.error(res, 'Session has been invalidated. Please log in again.', 401);
     }
 
     req.user = user;
@@ -89,7 +102,8 @@ const optionalProtect = async (req, res, next) => {
       { projection: { password: 0 } }
     );
 
-    if (user && user.isActive) {
+    // Fix 6: Check both status fields
+    if (user && user.isActive && user.status !== 'inactive') {
       req.user = user;
     }
     

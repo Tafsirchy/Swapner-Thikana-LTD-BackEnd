@@ -6,14 +6,14 @@ const { generateToken } = require('../utils/jwt');
 const ApiResponse = require('../utils/apiResponse');
 const sendEmail = require('../config/email');
 
+// Fix 3: Shortened cookie lifetime to 2h (matches new JWT_EXPIRES_IN)
 const setTokenCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === 'production';
   const cookieOptions = {
-    expires: new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days matching JWT_EXPIRES_IN
-    ),
+    maxAge: 2 * 60 * 60 * 1000, // Fix 3: 2 hours instead of 7 days
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    secure: isProd,
+    sameSite: isProd ? 'None' : 'Lax',
   };
 
   res.cookie('token', token, cookieOptions);
@@ -204,8 +204,8 @@ const login = async (req, res, next) => {
       return ApiResponse.error(res, 'Account is deactivated', 403);
     }
 
-    // 4. Generate token
-    const token = generateToken(user._id);
+    // Fix 4: Generate short-lived token (2h, controlled by JWT_EXPIRES_IN env var)
+    const token = generateToken(user._id, user.tokenVersion ?? 0);
     setTokenCookie(res, token);
 
     // Clean user object
@@ -391,16 +391,29 @@ const changePassword = async (req, res, next) => {
  * @access  Private
  */
 const logout = async (req, res, next) => {
-  const cookieOptions = {
-    expires: new Date(Date.now() + 10 * 1000), // Expire in 10 seconds
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-  };
+  try {
+    // Fix 5: Invalidate all existing tokens by incrementing tokenVersion in the database
+    const userId = req.user?._id;
+    if (userId) {
+      const { getDB } = require('../config/db');
+      await getDB().collection('users').updateOne(
+        { _id: userId },
+        { $inc: { tokenVersion: 1 } }
+      );
+    }
 
-  res.cookie('token', 'none', cookieOptions);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('token', 'none', {
+      maxAge: 10 * 1000, // Expire in 10 seconds
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'None' : 'Lax',
+    });
 
-  return ApiResponse.success(res, 'Logged out successfully');
+    return ApiResponse.success(res, 'Logged out successfully');
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -414,7 +427,8 @@ const googleCallback = async (req, res, next) => {
     const user = req.user;
     
     // Generate token and set cookie
-    const token = generateToken(user._id);
+    // Bug fix: pass tokenVersion so protect middleware doesn't reject the token after logout revocation
+    const token = generateToken(user._id, user.tokenVersion ?? 0);
     setTokenCookie(res, token);
 
     // Redirect based on user role
