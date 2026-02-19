@@ -30,6 +30,7 @@ app.use(cors({
       'https://shwapner-thikana.vercel.app', // Vercel Preview/Prod
       'https://www.shwapnerthikana.com',     // Custom Domain
       'https://shwapnerthikana.com',         // Custom Domain (non-www)
+      'https://real-estate-frontend-sand.vercel.app', // Production UI
     ];
 
     // Add localhost only in development
@@ -42,7 +43,9 @@ app.use(cors({
       callback(null, true);
     } else {
       console.warn(`[CORS Blocked] Origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      const corsError = new Error('Not allowed by CORS');
+      corsError.statusCode = 403;
+      callback(corsError);
     }
   },
   credentials: true, // Required for cookies
