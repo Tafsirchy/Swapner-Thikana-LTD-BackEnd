@@ -210,7 +210,7 @@ const login = async (req, res, next) => {
 
     // 2. Check password
     if (!user.password) {
-      return ApiResponse.error(res, 'This account was created using Google. Please sign in with Google.', 401);
+      return ApiResponse.error(res, 'This account was created using Google. To sign in with a password, please use "Forgot Password" to set one first.', 401);
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
