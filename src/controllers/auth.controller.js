@@ -458,9 +458,10 @@ const googleCallback = async (req, res, next) => {
 
     // Redirect based on user role WITH the exchange token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const isNewParam = isNewUser ? '&new=true' : '';
     const redirectUrl = user.role === 'admin' 
-      ? `${frontendUrl}/dashboard/admin?login=success&code=${exchangeToken}`
-      : `${frontendUrl}/?login=success&code=${exchangeToken}`;
+      ? `${frontendUrl}/dashboard/admin?login=success${isNewParam}&code=${exchangeToken}`
+      : `${frontendUrl}/?login=success${isNewParam}&code=${exchangeToken}`;
     
     res.redirect(redirectUrl);
   } catch (error) {
