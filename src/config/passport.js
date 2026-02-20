@@ -59,7 +59,7 @@ passport.use(
           const result = await usersCollection.insertOne(newUserFromPending);
           await pendingCollection.deleteOne({ _id: pendingUser._id });
           
-          return done(null, { ...newUserFromPending, _id: result.insertedId });
+          return done(null, { ...newUserFromPending, _id: result.insertedId, isNew: true });
         }
 
         // 2. Create new user if not exists
@@ -78,7 +78,7 @@ passport.use(
         };
 
         const result = await usersCollection.insertOne(newUser);
-        user = { ...newUser, _id: result.insertedId };
+        user = { ...newUser, _id: result.insertedId, isNew: true };
         
         return done(null, user);
       } catch (error) {
