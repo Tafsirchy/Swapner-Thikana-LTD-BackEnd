@@ -31,9 +31,19 @@ const createProperty = async (req, res, next) => {
        }
     });
 
-    // Validate Coordinates
-    if (!whitelistedData.location || !whitelistedData.location.latitude || !whitelistedData.location.longitude) {
+    // Validate Coordinates - Support both formats
+    const lat = whitelistedData.location?.latitude || whitelistedData.location?.lat;
+    const lng = whitelistedData.location?.longitude || whitelistedData.location?.lng;
+
+    if (lat === undefined || lng === undefined || lat === null || lng === null) {
       return ApiResponse.error(res, "Property location coordinates are required. Please select a valid address or pin the location on the map.", 400);
+    }
+
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return ApiResponse.error(res, "Invalid coordinates provided.", 400);
     }
 
     const propertyData = {
@@ -45,6 +55,10 @@ const createProperty = async (req, res, next) => {
       bedrooms: whitelistedData.bedrooms ? Number(whitelistedData.bedrooms) : undefined,
       bathrooms: whitelistedData.bathrooms ? Number(whitelistedData.bathrooms) : undefined,
       area: Number(whitelistedData.area),
+      coordinates: {
+        lat: latitude,
+        lng: longitude
+      },
       createdAt: new Date(),
       updatedAt: new Date(),
       status: whitelistedData.status || "pending",
@@ -464,10 +478,31 @@ const updateProperty = async (req, res, next) => {
 
     const updateData = { ...req.body, updatedAt: new Date() };
 
-    // Validate Coordinates if location is being updated
-    if (updateData.location) {
-      if (!updateData.location.latitude || !updateData.location.longitude) {
-        return ApiResponse.error(res, "Property location coordinates are required.", 400);
+    // Prevent accidental overwriting of sensitive fields
+    delete updateData._id;
+    delete updateData.agent;
+
+    // Validate and Transform Coordinates if location or coordinates are being updated
+    const loc = updateData.location || updateData.coordinates;
+    if (loc) {
+      const lat = loc.latitude !== undefined ? loc.latitude : loc.lat;
+      const lng = loc.longitude !== undefined ? loc.longitude : loc.lng;
+
+      if (lat !== undefined && lng !== undefined && lat !== null && lng !== null) {
+        const latitude = Number(lat);
+        const longitude = Number(lng);
+        
+        if (!isNaN(latitude) && !isNaN(longitude)) {
+          updateData.coordinates = {
+            lat: latitude,
+            lng: longitude
+          };
+        } else {
+          return ApiResponse.error(res, "Invalid coordinates provided.", 400);
+        }
+      } else if (updateData.location || updateData.coordinates) {
+        // If they tried to update location/coordinates but missed one of the pair
+        return ApiResponse.error(res, "Both latitude and longitude are required for location updates.", 400);
       }
     }
 
