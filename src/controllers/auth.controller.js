@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { Users } = require('../models/User');
 const { PendingUsers } = require('../models/PendingUser');
 const { generateToken } = require('../utils/jwt');
+const jwt = require('jsonwebtoken');
 const ApiResponse = require('../utils/apiResponse');
 const { sendRawEmail: sendEmail, sendWelcomeEmail } = require('../utils/emailSender');
 
@@ -448,24 +449,57 @@ const googleCallback = async (req, res, next) => {
     // Passport adds authenticated user to req.user
     const user = req.user;
     
-    // Generate token and set cookie
-    // Bug fix: pass tokenVersion so protect middleware doesn't reject the token after logout revocation
-    const token = generateToken(user._id, user.tokenVersion ?? 0);
-    setTokenCookie(res, token);
+    // 1. Generate short-lived (1 minute) exchange token
+    const exchangeToken = jwt.sign(
+      { id: user._id, tokenVersion: user.tokenVersion ?? 0, type: 'exchange' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1m' }
+    );
 
-    // Send welcome email on first OAuth login (new user heuristic: account < 10s old)
-    const isNewUser = user.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 10000;
-    if (isNewUser) {
-      sendWelcomeEmail(user).catch(err => console.error('[GOOGLE OAUTH] Welcome email failed:', err));
-    }
-
-    // Redirect based on user role
+    // Redirect based on user role WITH the exchange token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const redirectUrl = user.role === 'admin' 
-      ? `${frontendUrl}/dashboard/admin?login=success`
-      : `${frontendUrl}/?login=success`;
+      ? `${frontendUrl}/dashboard/admin?login=success&code=${exchangeToken}`
+      : `${frontendUrl}/?login=success&code=${exchangeToken}`;
     
     res.redirect(redirectUrl);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Exchange Google Auth Code for Session Cookie
+ * @route   POST /api/auth/google/exchange
+ * @access  Public
+ */
+const googleExchange = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    if (!code) return ApiResponse.error(res, 'Authorization code missing', 400);
+
+    let decoded;
+    try {
+      const jwt = require('jsonwebtoken');
+      decoded = jwt.verify(code, process.env.JWT_SECRET);
+      if (decoded.type !== 'exchange') throw new Error('Invalid token type');
+    } catch (err) {
+      return ApiResponse.error(res, 'Invalid or expired authorization code', 401);
+    }
+
+    // Generate real token and set cookie (Now happens securely via XHR)
+    const token = generateToken(decoded.id, decoded.tokenVersion);
+    setTokenCookie(res, token);
+
+    // Fetch User Profile to return to UI
+    const { Users } = require('../models/User');
+    const { ObjectId } = require('mongodb');
+    const user = await Users().findOne(
+      { _id: new ObjectId(decoded.id) },
+      { projection: { password: 0, resetPasswordToken: 0, resetPasswordExpires: 0 } }
+    );
+
+    return ApiResponse.success(res, 'Login successful', { user, token });
   } catch (error) {
     next(error);
   }
@@ -553,5 +587,6 @@ module.exports = {
   changePassword,
   logout,
   googleCallback,
+  googleExchange,
   resendVerification
 };

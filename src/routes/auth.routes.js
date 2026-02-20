@@ -82,6 +82,11 @@ router.get(
   authController.googleCallback
 );
 
+// @route   POST /api/auth/google/exchange
+// @desc    Exchange short-lived code for session cookie
+// @access  Public
+router.post('/google/exchange', authController.googleExchange);
+
 // @route   POST /api/auth/logout
 // @desc    Logout user
 // @access  Private
