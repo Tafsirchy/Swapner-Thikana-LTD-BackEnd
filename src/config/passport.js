@@ -1,6 +1,7 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { Users } = require('../models/User');
+const { PendingUsers } = require('../models/PendingUser');
 
 passport.use(
   new GoogleStrategy(
@@ -22,12 +23,43 @@ passport.use(
           if (!user.isActive || user.status === 'inactive') {
             return done(null, false, { message: 'Account has been deactivated' });
           }
-          // Update last login or profile info if needed
+          
+          // Link googleId if not already present
+          const updates = { updatedAt: new Date() };
+          if (!user.googleId) updates.googleId = profile.id;
+          if (!user.avatar && profile.photos?.[0]?.value) updates.avatar = profile.photos[0].value;
+
           await usersCollection.updateOne(
             { _id: user._id },
-            { $set: { updatedAt: new Date() } }
+            { $set: updates }
           );
           return done(null, user);
+        }
+
+        // 2. Check if user exists in PendingUsers (Email signed up but not verified)
+        const pendingCollection = PendingUsers();
+        const pendingUser = await pendingCollection.findOne({ email });
+
+        if (pendingUser) {
+          const newUserFromPending = {
+            name: profile.displayName || pendingUser.name,
+            email: email,
+            password: pendingUser.password, // Keep their password if they set one
+            phone: pendingUser.phone || '',
+            role: 'customer',
+            status: 'active',
+            isActive: true,
+            isVerified: true,
+            googleId: profile.id,
+            avatar: profile.photos?.[0]?.value,
+            createdAt: pendingUser.createdAt || new Date(),
+            updatedAt: new Date(),
+          };
+
+          const result = await usersCollection.insertOne(newUserFromPending);
+          await pendingCollection.deleteOne({ _id: pendingUser._id });
+          
+          return done(null, { ...newUserFromPending, _id: result.insertedId });
         }
 
         // 2. Create new user if not exists
