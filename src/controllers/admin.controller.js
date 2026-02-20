@@ -124,7 +124,6 @@ const updateUserRole = async (req, res, next) => {
       return ApiResponse.error(res, 'User not found', 404);
     }
     
-    console.log(`[AdminController] Target User Found: Role=${targetUser.role}`);
 
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own role', 400);
@@ -160,7 +159,6 @@ const updateUserStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status } = req.body; // Expecting 'active', 'inactive', or 'suspended'
 
-    console.log(`[AdminController] Update Status Request: ID=${id}, Status=${status}, Requester=${req.user._id}`);
 
     if (!['active', 'inactive', 'suspended'].includes(status)) {
       return ApiResponse.error(res, 'Invalid status value', 400);
@@ -172,7 +170,6 @@ const updateUserStatus = async (req, res, next) => {
       return ApiResponse.error(res, 'User not found', 404);
     }
     
-    console.log(`[AdminController] Target User Found: Role=${targetUser.role}`);
 
     if (id === req.user._id.toString()) {
       return ApiResponse.error(res, 'Cannot change your own status', 400);
@@ -274,7 +271,6 @@ const getAllProperties = async (req, res, next) => {
     const sortObj = getSortObject(sort);
     const skip = (Number(page) - 1) * Number(limit);
 
-    console.log('[DEBUG] admin.getAllProperties Query:', JSON.stringify(query, null, 2));
 
     const properties = await Properties()
       .aggregate([
