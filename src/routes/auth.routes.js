@@ -65,7 +65,20 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // @access  Public
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  function(req, res, next) {
+    passport.authenticate('google', { session: false }, function(err, user, info) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      if (err) {
+        return res.redirect(`${frontendUrl}/auth/login?error=Google_Authentication_Failed`);
+      }
+      if (!user) {
+        const errorMsg = info && info.message ? encodeURIComponent(info.message.replace(/ /g, '_')) : 'Google_Authentication_Cancelled';
+        return res.redirect(`${frontendUrl}/auth/login?error=${errorMsg}`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   authController.googleCallback
 );
 

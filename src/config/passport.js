@@ -19,6 +19,9 @@ passport.use(
         let user = await usersCollection.findOne({ email });
 
         if (user) {
+          if (!user.isActive || user.status === 'inactive') {
+            return done(null, false, { message: 'Account has been deactivated' });
+          }
           // Update last login or profile info if needed
           await usersCollection.updateOne(
             { _id: user._id },
