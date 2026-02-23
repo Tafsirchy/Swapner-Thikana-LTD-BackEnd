@@ -42,12 +42,28 @@ const baseTemplate = (content) => `
 </html>
 `;
 
+const renderButton = (url, text) => `
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 25px; margin-bottom: 25px;">
+      <tr>
+        <td align="left">
+          <table border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td align="center" bgcolor="${primaryColor}" style="border-radius: 8px;">
+                <a href="${url}" target="_blank" style="font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 28px; border: 1px solid ${primaryColor}; display: inline-block; background-color: ${primaryColor};">${text}</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+`;
+
 const getEmailVerificationTemplate = (name, url) => baseTemplate(`
     <h1>Verify Your Address</h1>
     <p>Dear ${name},</p>
     <p>Welcome to <strong>Shwapner Thikana Ltd</strong>. We are thrilled to have you join our exclusive community of homeowners and investors.</p>
     <p>To finalize your account registration and start exploring premium real estate opportunities, please verify your email address by clicking the button below:</p>
-    <a href="${url}" class="button">Verify My Account</a>
+    ${renderButton(url, 'Verify My Account')}
     <p>If the button doesn't work, copy and paste this link into your browser:</p>
     <p style="word-break: break-all; color: ${primaryColor}; font-size: 12px;">${url}</p>
     <p>This link will expire in 24 hours.</p>
@@ -59,7 +75,7 @@ const getPasswordResetTemplate = (name, url) => baseTemplate(`
     <p>Hello ${name},</p>
     <p>We received a request to reset your password for your <strong>Shwapner Thikana Ltd</strong> account.</p>
     <p>If you made this request, click the button below to set a new password:</p>
-    <a href="${url}" class="button">Reset Password</a>
+    ${renderButton(url, 'Reset Password')}
     <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
     <p>Link expires in 10 minutes.</p>
     <p>Warmly,<br>Shwapner Thikana Support</p>
@@ -76,7 +92,7 @@ const getWelcomeEmailTemplate = (name) => baseTemplate(`
         <li>Connect with our expert property advisors</li>
         <li>Set up personalized property alerts</li>
     </ul>
-    <a href="${process.env.FRONTEND_URL}" class="button">Start Exploring</a>
+    ${renderButton(process.env.FRONTEND_URL, 'Start Exploring')}
     <p>Excellence in every square foot,<br>Shwapner Thikana Team</p>
 `);
 
